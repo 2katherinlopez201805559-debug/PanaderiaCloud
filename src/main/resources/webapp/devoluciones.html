@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- App para teléfono (se puede instalar en la pantalla de inicio) -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#7e22ce">
+    <link rel="apple-touch-icon" href="img/app/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="San Carlos">
+    <title>Devoluciones | Panadería San Carlos</title>
+    <link rel="icon" href="img/umg.png">
+    <link rel="stylesheet" href="css/estilos.css?v=20261022">
+</head>
+<body>
+<main>
+    <div class="contenedor">
+
+        <!-- ===== Registrar (sucursal) ===== -->
+        <section data-seccion="nueva" id="sec-nueva">
+            <div class="titulo-pagina">
+                <span class="etiqueta-codigo">POST /webapi/Devoluciones/RegistrarDevolucion</span>
+                <h1>Registrar devolución</h1>
+                <p>Reporte pan que llegó sin haberlo pedido, que llegó de más o que llegó en mal estado.</p>
+            </div>
+
+            <div class="grid grid-lateral">
+                <form class="tarjeta" id="formDevolucion" novalidate>
+                    <div class="campo">
+                        <label for="selPedido">Pedido recibido *</label>
+                        <select id="selPedido"><option value="">Cargando…</option></select>
+                        <span class="ayuda">Solo pedidos despachados o entregados a su sucursal.</span>
+                        <span class="msg-error"></span>
+                    </div>
+
+                    <div class="campo">
+                        <label>Motivo *</label>
+                        <div class="motivos" id="motivos">
+                            <label class="motivo"><input type="radio" name="motivo" value="NO_SOLICITADO">
+                                <span><strong>No solicitado</strong><span>Llegó un pan que no estaba en el pedido.</span></span></label>
+                            <label class="motivo"><input type="radio" name="motivo" value="EXCEDENTE">
+                                <span><strong>Excedente</strong><span>Llegó más cantidad de la que se pidió.</span></span></label>
+                            <label class="motivo"><input type="radio" name="motivo" value="DANADO">
+                                <span><strong>Dañado</strong><span>Llegó quemado, aplastado o en mal estado.</span></span></label>
+                        </div>
+                        <span class="msg-error" id="errorMotivo"></span>
+                    </div>
+
+                    <div class="fila-form">
+                        <div class="campo">
+                            <label for="selPan">Pan que devuelve *</label>
+                            <select id="selPan"><option value="">Seleccione primero el motivo</option></select>
+                            <span class="msg-error"></span>
+                        </div>
+                        <div class="campo" style="flex:0 1 160px">
+                            <label for="cantidad">Cantidad *</label>
+                            <input type="number" id="cantidad" min="1" step="1" placeholder="0">
+                            <span class="msg-error"></span>
+                        </div>
+                    </div>
+
+                    <div class="campo mt">
+                        <label for="observacion">Observación <span class="texto-suave" id="contador">0/250</span></label>
+                        <textarea id="observacion" maxlength="250" placeholder="Ej. Llegaron 10 panes alemanes que no pedimos."></textarea>
+                        <span class="msg-error"></span>
+                    </div>
+
+                    <button class="btn btn-rojo" type="submit" id="btnRegistrar" style="width:100%;justify-content:center">Registrar devolución</button>
+                </form>
+
+                <div class="tarjeta">
+                    <h3>Lo que se pidió</h3>
+                    <p class="texto-suave" style="font-size:.85rem">Compare con lo que recibió.</p>
+                    <div id="detallePedido"><p class="texto-suave">Seleccione un pedido.</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== Historial / revisión ===== -->
+        <section data-seccion="historial" id="sec-historial" class="oculto">
+            <div class="titulo-pagina">
+                <span class="etiqueta-codigo">GET /webapi/Devoluciones/ObtenerDevoluciones</span>
+                <h1 id="tituloHistorial">Mis devoluciones</h1>
+                <p id="textoHistorial">Las devoluciones quedan pendientes hasta que el gerente las revise.</p>
+            </div>
+            <div class="tarjeta">
+                <div class="tarjeta-cabecera">
+                    <select id="filtroEstado" aria-label="Filtrar por estado" style="width:auto">
+                        <option value="">Todos los estados</option>
+                        <option value="PENDIENTE">Pendientes</option>
+                        <option value="APROBADA">Aprobadas</option>
+                        <option value="RECHAZADA">Rechazadas</option>
+                    </select>
+                    <a class="btn btn-claro btn-chico" href="devoluciones.html#nueva" id="btnNueva">+ Nueva devolución</a>
+                </div>
+                <div class="tabla-contenedor">
+                    <table>
+                        <thead><tr><th>#</th><th>Pedido</th><th>Sucursal</th><th>Pan</th><th class="num">Cant.</th><th>Motivo</th><th>Estado</th><th class="num">Monto</th><th class="num"></th></tr></thead>
+                        <tbody id="tablaDevoluciones"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<div class="modal-fondo" id="modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
+        <div class="tarjeta-cabecera">
+            <h2 id="modalTitulo">Detalle</h2>
+            <button class="btn btn-claro btn-chico" type="button" onclick="cerrarModal()">Cerrar</button>
+        </div>
+        <div id="modalCuerpo"></div>
+    </div>
+</div>
+
+<script src="js/comun.js"></script>
+<script src="js/devoluciones.js"></script>
+</body>
+</html>

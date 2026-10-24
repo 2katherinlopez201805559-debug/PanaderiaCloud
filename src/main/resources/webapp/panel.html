@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- App para teléfono (se puede instalar en la pantalla de inicio) -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#7e22ce">
+    <link rel="apple-touch-icon" href="img/app/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="San Carlos">
+    <title>Panel de producción | Panadería San Carlos</title>
+    <link rel="icon" href="img/umg.png">
+    <link rel="stylesheet" href="css/estilos.css?v=20261022">
+</head>
+<body>
+<main>
+    <div class="contenedor">
+        <div class="titulo-pagina">
+            <span class="etiqueta-codigo">Firestore · pedidos · productos · insumos</span>
+            <h1>Panel de producción</h1>
+            <p>Sr. Kevin Gálvez — planifique la producción, despache pedidos y controle el inventario.</p>
+        </div>
+
+        <div id="bannerAlertas" class="aviso aviso-alerta oculto"></div>
+
+        <nav class="pestanas" role="tablist">
+            <button type="button" data-tab="pedidos" class="activa">Pedidos</button>
+            <button type="button" data-tab="produccion">Producción</button>
+            <button type="button" data-tab="panes">Panes y recetas</button>
+            <button type="button" data-tab="insumos">Insumos</button>
+            <button type="button" data-tab="alertas">Alertas <span class="badge badge-alerta" id="contadorAlertas">0</span></button>
+        </nav>
+
+        <!-- ================= PEDIDOS ================= -->
+        <section class="panel-pestana activo" id="tab-pedidos">
+            <div class="grid grid-4" style="margin-bottom:20px">
+                <div class="tarjeta kpi"><span class="valor" id="kpiPend">–</span><span class="nombre">Pendientes</span></div>
+                <div class="tarjeta kpi"><span class="valor" id="kpiDesp">–</span><span class="nombre">Despachados</span></div>
+                <div class="tarjeta kpi"><span class="valor" id="kpiEntr">–</span><span class="nombre">Entregados</span></div>
+                <div class="tarjeta kpi"><span class="valor" id="kpiMonto">–</span><span class="nombre">Monto pendiente</span></div>
+            </div>
+
+            <div class="tarjeta">
+                <div class="tarjeta-cabecera">
+                    <h2>Pedidos de las sucursales</h2>
+                    <div class="fila-form" style="gap:10px">
+                        <select id="filtroSucursal" aria-label="Filtrar por sucursal" style="width:auto">
+                            <option value="">Todas las sucursales</option>
+                        </select>
+                        <select id="filtroEstado" aria-label="Filtrar por estado" style="width:auto">
+                            <option value="">Todos los estados</option>
+                            <option value="PENDIENTE" selected>Pendientes</option>
+                            <option value="DESPACHADO">Despachados</option>
+                            <option value="ENTREGADO">Entregados</option>
+                            <option value="CANCELADO">Cancelados</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="tabla-contenedor">
+                    <table>
+                        <thead>
+                            <tr><th>#</th><th>Sucursal</th><th>Pedido</th><th>Entrega</th><th>Estado</th><th class="num">Total</th><th class="num">Acciones</th></tr>
+                        </thead>
+                        <tbody id="tablaPedidos"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PRODUCCIÓN ================= -->
+        <section class="panel-pestana" id="tab-produccion">
+            <div class="grid grid-lateral">
+                <div class="tarjeta">
+                    <div class="tarjeta-cabecera">
+                        <h2>¿Cuánto pan falta producir?</h2>
+                        <div class="campo" style="margin:0">
+                            <input type="date" id="fechaResumen" aria-label="Fecha de entrega">
+                        </div>
+                    </div>
+                    <p class="texto-suave" style="font-size:.88rem">Suma de los pedidos <strong>pendientes</strong> para la fecha, comparada con el pan en existencia.</p>
+                    <div class="tabla-contenedor">
+                        <table>
+                            <thead><tr><th>Pan</th><th class="num">Pedido</th><th class="num">En stock</th><th class="num">Falta</th><th></th></tr></thead>
+                            <tbody id="tablaResumen"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <form class="tarjeta" id="formProducir" novalidate>
+                    <h2>Registrar producción</h2>
+                    <p class="texto-suave" style="font-size:.88rem">Se descuentan los insumos según la receta. Si falta algún insumo, no se registra nada.</p>
+                    <div class="campo">
+                        <label for="selPan">Pan *</label>
+                        <select id="selPan"><option value="">Cargando…</option></select>
+                        <span class="msg-error"></span>
+                    </div>
+                    <div class="campo">
+                        <label for="cantProducir">Cantidad (unidades) *</label>
+                        <input type="number" id="cantProducir" min="1" step="1" placeholder="Ej. 50">
+                        <span class="msg-error"></span>
+                    </div>
+                    <div id="receta" class="mt"></div>
+                    <button class="btn btn-verde mt" type="submit" id="btnProducir" style="width:100%;justify-content:center">Producir</button>
+                </form>
+            </div>
+
+            <div class="tarjeta mt">
+                <h2>Pan en existencia</h2>
+                <div class="tabla-contenedor mt">
+                    <table>
+                        <thead><tr><th>Pan</th><th class="num">Precio</th><th class="num">Stock</th><th class="num">Mínimo</th><th>Nivel</th><th>Estado</th></tr></thead>
+                        <tbody id="tablaProductos"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PANES Y RECETAS (js/panes.js) ================= -->
+        <section class="panel-pestana" id="tab-panes">
+            <div class="grid grid-lateral">
+                <div class="tarjeta">
+                    <div class="tarjeta-cabecera">
+                        <h2>Catálogo de panes</h2>
+                        <span class="etiqueta-codigo">Firestore · productos</span>
+                    </div>
+                    <p class="texto-suave" style="font-size:.88rem">Cambie la receta, el precio o desactive un pan que ya no se hace.</p>
+                    <div class="tabla-contenedor">
+                        <table>
+                            <thead><tr><th>Pan</th><th class="num">Precio</th><th class="num">Mínimo</th><th class="num">Insumos</th><th>Estado</th><th class="num">Acciones</th></tr></thead>
+                            <tbody id="tablaCatalogo"><tr><td colspan="6" class="vacio">Cargando…</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <form class="tarjeta" id="formNuevoPan" novalidate>
+                    <h2>🥐 Nuevo pan</h2>
+                    <p class="texto-suave" style="font-size:.88rem">El pan y su receta se guardan juntos: si algo falla, no se guarda nada.</p>
+                    <div class="campo">
+                        <label for="npNombre">Nombre del pan *</label>
+                        <input id="npNombre" maxlength="60" placeholder="Ej. Pan de manteca">
+                        <span class="msg-error"></span>
+                    </div>
+                    <div class="fila-form">
+                        <div class="campo">
+                            <label for="npPrecio">Precio (Q) *</label>
+                            <input type="number" id="npPrecio" min="0.01" step="0.01" placeholder="1.50">
+                            <span class="msg-error"></span>
+                        </div>
+                        <div class="campo">
+                            <label for="npMinimo">Existencia mínima *</label>
+                            <input type="number" id="npMinimo" min="0" step="1" placeholder="20">
+                            <span class="msg-error"></span>
+                        </div>
+                    </div>
+                    <div class="campo">
+                        <label for="npUnidad">Se vende por</label>
+                        <select id="npUnidad">
+                            <option value="unidad">Unidad</option>
+                            <option value="docena">Docena</option>
+                            <option value="bolsa">Bolsa</option>
+                        </select>
+                    </div>
+
+                    <h3 class="subtitulo-receta">📋 Receta <span class="texto-suave">(para 1 pan)</span></h3>
+                    <div id="npReceta" class="editor-receta"></div>
+                    <button type="button" class="btn btn-claro btn-chico" id="npAgregar">+ Agregar insumo</button>
+                    <p class="msg-error" id="npErrorReceta"></p>
+
+                    <button class="btn btn-rojo mt" type="submit" id="btnCrearPan" style="width:100%;justify-content:center">Crear pan con su receta</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- ================= INSUMOS ================= -->
+        <section class="panel-pestana" id="tab-insumos">
+            <div class="grid grid-lateral">
+                <div class="tarjeta">
+                    <h2>Materia prima</h2>
+                    <div class="tabla-contenedor mt">
+                        <table>
+                            <thead><tr><th>Insumo</th><th class="num">Stock</th><th class="num">Mínimo</th><th>Nivel</th><th>Estado</th></tr></thead>
+                            <tbody id="tablaInsumos"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <form class="tarjeta" id="formCompra" novalidate>
+                    <h2>Registrar compra</h2>
+                    <p class="texto-suave" style="font-size:.88rem">Suma la materia prima recibida al inventario.</p>
+                    <div class="campo">
+                        <label for="selInsumo">Insumo *</label>
+                        <select id="selInsumo"><option value="">Cargando…</option></select>
+                        <span class="msg-error"></span>
+                    </div>
+                    <div class="campo">
+                        <label for="cantCompra">Cantidad * <span class="texto-suave" id="unidadCompra"></span></label>
+                        <input type="number" id="cantCompra" min="0.001" step="0.001" placeholder="Ej. 25">
+                        <span class="msg-error"></span>
+                    </div>
+                    <button class="btn btn-primario" type="submit" id="btnCompra" style="width:100%;justify-content:center">Registrar compra</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- ================= ALERTAS ================= -->
+        <section class="panel-pestana" id="tab-alertas">
+            <div class="tarjeta">
+                <div class="tarjeta-cabecera">
+                    <h2>Existencia mínima alcanzada</h2>
+                    <span class="texto-suave" style="font-size:.85rem">Se actualiza cada 60 segundos</span>
+                </div>
+                <div class="tabla-contenedor">
+                    <table>
+                        <thead><tr><th>Tipo</th><th>Nombre</th><th class="num">Stock</th><th class="num">Mínimo</th><th>Unidad</th></tr></thead>
+                        <tbody id="tablaAlertas"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<div class="modal-fondo" id="modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
+        <div class="tarjeta-cabecera">
+            <h2 id="modalTitulo">Detalle</h2>
+            <button class="btn btn-claro btn-chico" type="button" onclick="cerrarModal()">Cerrar</button>
+        </div>
+        <div id="modalCuerpo"></div>
+    </div>
+</div>
+
+<script src="js/comun.js"></script>
+<script src="js/panel.js"></script>
+<script src="js/panes.js"></script>
+</body>
+</html>

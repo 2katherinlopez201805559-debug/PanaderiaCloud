@@ -1,0 +1,4 @@
+target/
+clave-firebase.json
+*-firebase-adminsdk-*.json
+.git/

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- App para teléfono (se puede instalar en la pantalla de inicio) -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#7e22ce">
+    <link rel="apple-touch-icon" href="img/app/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="San Carlos">
+    <title>Panadería San Carlos | Pan fresco cada mañana</title>
+    <meta name="description" content="Panadería San Carlos: pan francés, cubos, campechanas, shecas y más, recién horneados para nuestras 5 sucursales. Proyecto final de Desarrollo Web, UMG.">
+    <link rel="icon" href="img/umg.png">
+    <link rel="stylesheet" href="css/estilos.css?v=20261022">
+</head>
+<body>
+
+<!-- ============ PORTADA ============ -->
+<section class="portada">
+    <div class="contenedor">
+        <div>
+            <span class="sello-portada">🔥 Horneado desde las 4:00 a.m.</span>
+            <h1>El pan de cada mañana, <em>recién salido del horno</em>.</h1>
+            <p>En Panadería San Carlos preparamos a diario francés, cubos, campechanas, shecas y más,
+                con recetas de siempre y la frescura que tus clientes buscan. Lo entregamos temprano en nuestras 5 sucursales.</p>
+            <div class="acciones">
+                <a class="btn btn-claro" href="#productos">Ver nuestros panes</a>
+                <a class="btn btn-borde" href="login.html">Ingresar al sistema →</a>
+            </div>
+        </div>
+        <div class="vitrina" aria-hidden="true">
+            <div><img class="foto-vitrina" src="img/panes/frances.jpg" alt="Francés"><strong>Francés</strong><small>Q 1.00</small></div>
+            <div><img class="foto-vitrina" src="img/panes/cachos.jpg" alt="Cachos"><strong>Cachos</strong><small>Q 1.00</small></div>
+            <div><img class="foto-vitrina" src="img/panes/cubos.jpg" alt="Cubos"><strong>Cubos</strong><small>Q 1.00</small></div>
+            <div><img class="foto-vitrina" src="img/panes/shecas.jpg" alt="Shecas"><strong>Shecas</strong><small>Q 1.50</small></div>
+            <div><img class="foto-vitrina" src="img/panes/batidas.jpg" alt="Batidas"><strong>Batidas</strong><small>Q 1.25</small></div>
+            <div><img class="foto-vitrina" src="img/panes/campechanas.jpg" alt="Campechanas"><strong>Campechanas</strong><small>Q 1.50</small></div>
+        </div>
+    </div>
+</section>
+
+<div class="cinta">
+    <span>Pan fresco todos los días</span>
+    <span>9 variedades tradicionales</span>
+    <span>5 sucursales en la ciudad</span>
+    <span>Despacho por la mañana</span>
+</div>
+
+<main>
+    <div class="contenedor">
+
+        <!-- ============ PRODUCTOS ============ -->
+        <section class="seccion" id="productos">
+            <div class="titulo-seccion">
+                <span class="etiqueta-codigo">GET /webapi/Productos/ObtenerProductos</span>
+                <h2>Nuestros panes</h2>
+                <p>Precios actualizados directamente desde nuestro sistema.</p>
+            </div>
+            <div class="catalogo" id="catalogo">
+                <div class="pan"><span class="texto-suave">Cargando panes…</span></div>
+            </div>
+        </section>
+
+        <!-- ============ SUCURSALES ============ -->
+        <section class="seccion" id="sucursales">
+            <div class="titulo-seccion">
+                <h2>Encuéntranos</h2>
+                <p>Cada sucursal hace su pedido en línea y lo recibe temprano por la mañana.</p>
+            </div>
+            <div class="grid grid-3" id="listaSucursales"></div>
+        </section>
+
+        <!-- ============ PROYECTO UMG ============ -->
+        <section class="seccion" id="umg">
+            <div class="banda-umg">
+                <img src="img/umg.png" alt="Escudo de la Universidad Mariano Gálvez de Guatemala">
+                <div>
+                    <h2>Universidad Mariano Gálvez de Guatemala</h2>
+                    <div class="chips">
+                        <span class="chip">Ingeniería en Sistemas de Información</span>
+                        <span class="chip">Desarrollo Web</span>
+                        <span class="chip">Plan Sábado</span>
+                    </div>
+                    <p>Proyecto final: sistema web para el control de producción de pan, recetas, inventario de
+                        insumos, pedidos y devoluciones de sucursales, con acceso por usuario y contraseña.</p>
+                </div>
+                <div class="consola" aria-hidden="true">
+                    <div class="barra-ventana"><span></span><span></span><span></span></div>
+<pre><span class="c">// Arquitectura del proyecto</span>
+<span class="k">Frontend</span>  HTML · CSS · JavaScript
+<span class="k">Backend</span>   Java · Jersey <span class="s">REST</span> · JWT
+<span class="k">Base</span>      Firebase Firestore
+<span class="ok">✔ Transacciones</span> todo o nada</pre>
+                </div>
+            </div>
+        </section>
+
+        <section class="seccion" style="text-align:center">
+            <h2>¿Eres parte del equipo San Carlos?</h2>
+            <p class="texto-suave">Gerencia y sucursales ingresan con su usuario y contraseña.</p>
+            <a class="btn btn-rojo" href="login.html">Ingresar al sistema</a>
+        </section>
+    </div>
+</main>
+
+<script src="js/comun.js"></script>
+<script>
+    montarPublico();
+
+    const EMOJIS = { "Cubos": "🍞", "Especial": "🥨", "Francés": "🥖", "Alemán": "🍩", "Cachos": "🥐",
+                     "Cortadas": "🍰", "Batidas": "🧁", "Campechanas": "🥮", "Shecas": "🥯" };
+
+    // Foto del pan (img/panes/<nombre>.jpg). Si no existe la foto, se muestra el emoji.
+    function fotoPan(nombre, clase = "foto-pan") {
+        const archivo = String(nombre || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+        const emoji = EMOJIS[nombre] || "🍞";
+        return `<img class="${clase}" src="img/panes/${archivo}.jpg" alt="${escaparHTML(nombre)}" loading="lazy"
+                     onerror="this.outerHTML='<span class=&quot;emoji&quot;>${emoji}</span>'">`;
+    }
+
+    const DESCRIPCION = {
+        "Cubos": "Suave y esponjoso", "Especial": "Con leche y huevo", "Francés": "Crujiente por fuera",
+        "Alemán": "Dulce y tradicional", "Cachos": "Hojaldrado con leche", "Cortadas": "Dulce para el café",
+        "Batidas": "Ligeras y suaves", "Campechanas": "Doradas y azucaradas", "Shecas": "Con jugo de fruta"
+    };
+
+    (async function () {
+        try {
+            const panes = (await Api.productos()).filter(p => p.ESTADO === "ACTIVO");
+            document.getElementById("catalogo").innerHTML = panes.map(p => `
+                <div class="pan">
+                    ${fotoPan(p.NOMBRE)}
+                    <strong>${escaparHTML(p.NOMBRE)}</strong>
+                    <span class="texto-suave" style="font-size:.85rem">${escaparHTML(DESCRIPCION[p.NOMBRE] || "Recién horneado")}</span>
+                    <div class="precio">${moneda(p.PRECIO)}</div>
+                </div>`).join("");
+        } catch (e) {
+            document.getElementById("catalogo").innerHTML = `<div class="aviso aviso-alerta">${escaparHTML(e.message)}</div>`;
+        }
+        try {
+            const sucursales = (await Api.sucursales()).filter(s => s.ESTADO === "ACTIVO");
+            // Cada tarjeta es un ENLACE: lleva a la presentación de la sucursal (sucursal.html?id=...)
+            document.getElementById("listaSucursales").innerHTML = sucursales.map(s => `
+                <a class="tarjeta sucursal-card con-foto" href="sucursal.html?id=${s.ID_SUCURSAL}">
+                    <img class="foto-suc" loading="lazy" alt="Sucursal ${escaparHTML(s.NOMBRE)}"
+                         src="img/sucursales/${String(s.NOMBRE).normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().split(/\s+/)[0].toLowerCase()}-mini.jpg"
+                         onerror="this.outerHTML='<span class=&quot;pin&quot;>📍</span>'">
+                    <div><strong>Sucursal ${escaparHTML(s.NOMBRE)}</strong><br>
+                        <span class="texto-suave" style="font-size:.85rem">${escaparHTML(s.DIRECCION || "")} · Tel. ${escaparHTML(s.TELEFONO || "")}</span></div>
+                    <span class="btn btn-primario btn-chico btn-ingresar">Conocer →</span>
+                </a>`).join("");
+        } catch (e) { /* el catálogo ya muestra el error */ }
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- App para teléfono (se puede instalar en la pantalla de inicio) -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#7e22ce">
+    <link rel="apple-touch-icon" href="img/app/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="San Carlos">
+    <title>Ingresar | Panadería San Carlos</title>
+    <link rel="icon" href="img/umg.png">
+    <link rel="stylesheet" href="css/estilos.css?v=20261022">
+</head>
+<body>
+<div class="login-pagina">
+    <section class="login-arte">
+        <a href="index.html" style="color:inherit;text-decoration:none">← Volver al sitio</a>
+        <div>
+            <h2>Panadería San Carlos</h2>
+            <p>Sistema de control de producción, pedidos y devoluciones de sucursales.</p>
+            <p class="extra">🥖 Gerencia: producción, despachos, inventario y alertas.<br>
+                🏪 Sucursales: pedidos diarios y devoluciones de pan.</p>
+        </div>
+        <div class="umg">
+            <img src="img/umg.png" alt="Escudo UMG">
+            <div><strong>Universidad Mariano Gálvez</strong><br>
+                <small>Ingeniería en Sistemas de Información · Desarrollo Web · Plan Sábado</small></div>
+        </div>
+    </section>
+
+    <section class="login-forma">
+        <div class="login-caja">
+            <form class="tarjeta" id="formLogin" novalidate autocomplete="on">
+                <h1>Iniciar sesión</h1>
+                <p class="texto-suave">Elija quién ingresa y escriba la contraseña.</p>
+                <div id="avisoLogin" class="aviso aviso-alerta oculto"></div>
+
+                <!-- BOTONES "¿QUIÉN INGRESA?": cada botón escribe el usuario (data-usuario) -->
+                <div class="selector-usuario" id="selectorUsuario">
+                    <button type="button" data-usuario="kgalvez">👑 Gerencia</button>
+                    <button type="button" data-usuario="central">🏪 Central</button>
+                    <button type="button" data-usuario="chiva">🏪 Chiva</button>
+                    <button type="button" data-usuario="barco">🏪 Barco</button>
+                    <button type="button" data-usuario="heydi">🏪 Heydi</button>
+                    <button type="button" data-usuario="terminal">🏪 Terminal</button>
+                </div>
+
+                <div class="campo">
+                    <label for="usuario">Usuario</label>
+                    <input id="usuario" name="username" autocomplete="username" maxlength="30" placeholder="Ej. central" autofocus>
+                    <span class="msg-error"></span>
+                </div>
+                <div class="campo">
+                    <label for="clave">Contraseña</label>
+                    <div class="campo-clave">
+                        <input id="clave" name="password" type="password" autocomplete="current-password" maxlength="100">
+                        <button type="button" id="verClave" aria-label="Mostrar contraseña">Mostrar</button>
+                    </div>
+                    <span class="msg-error"></span>
+                </div>
+                <button class="btn btn-rojo" type="submit" id="btnEntrar" style="width:100%;justify-content:center">Entrar</button>
+
+                <div class="usuarios-demo">
+                    Usuarios de prueba: <code>kgalvez</code> (gerente), <code>central</code>, <code>chiva</code>,
+                    <code>barco</code>, <code>heydi</code>, <code>terminal</code> (sucursales).
+                </div>
+            </form>
+        </div>
+    </section>
+</div>
+
+<script src="js/comun.js"></script>
+<script>
+    agregarToasts();
+    const params = new URLSearchParams(location.search);
+    const aviso = document.getElementById("avisoLogin");
+    if (params.get("expirada")) {
+        aviso.textContent = "Su sesión expiró. Ingrese nuevamente.";
+        aviso.classList.remove("oculto");
+    }
+
+    // Si ya tiene sesión, directo al sistema
+    if (Sesion.obtener()?.TOKEN) location.replace(Sesion.inicio());
+
+    const usuario = document.getElementById("usuario");
+    const clave = document.getElementById("clave");
+
+    // Botones de sucursal: escriben el usuario, se marcan y pasan a la contraseña
+    const botonesUsuario = document.querySelectorAll("#selectorUsuario button");
+    function marcarUsuario(valor) {
+        botonesUsuario.forEach(b => b.classList.toggle("activo", b.dataset.usuario === valor.trim().toLowerCase()));
+    }
+    botonesUsuario.forEach(b => b.addEventListener("click", () => {
+        usuario.value = b.dataset.usuario;
+        limpiarError(usuario);
+        marcarUsuario(usuario.value);
+        clave.value = "";
+        clave.focus();
+    }));
+    usuario.addEventListener("input", () => marcarUsuario(usuario.value));
+
+    // Si viene desde la presentación de una sucursal (login.html?usuario=chiva&sucursal=CHIVA)
+    const usuarioUrl = params.get("usuario");
+    if (usuarioUrl && /^[A-Za-z0-9._-]{3,30}$/.test(usuarioUrl)) {
+        usuario.value = usuarioUrl;
+        marcarUsuario(usuarioUrl);
+        clave.focus();
+        const nombreSuc = params.get("sucursal");
+        if (nombreSuc) {
+            document.querySelector("#formLogin h1").textContent = `Ingreso · Sucursal ${nombreSuc}`;
+            document.querySelector("#formLogin h1 + p").textContent = "Escriba la contraseña de la sucursal para continuar.";
+        }
+    }
+
+    document.getElementById("verClave").addEventListener("click", (e) => {
+        const ver = clave.type === "password";
+        clave.type = ver ? "text" : "password";
+        e.target.textContent = ver ? "Ocultar" : "Mostrar";
+    });
+
+    document.getElementById("formLogin").addEventListener("submit", async (ev) => {
+        ev.preventDefault();
+        aviso.classList.add("oculto");
+        let valido = validarRequerido(usuario, "Ingrese su usuario.");
+        if (valido && !/^[A-Za-z0-9._-]{3,30}$/.test(usuario.value.trim())) {
+            valido = marcarError(usuario, "Solo letras, números, punto o guion (3 a 30).");
+        }
+        if (!validarRequerido(clave, "Ingrese su contraseña.")) valido = false;
+        if (!valido) return;
+
+        try {
+            const datos = await conBoton(document.getElementById("btnEntrar"),
+                () => Api.login(usuario.value.trim(), clave.value));
+            Sesion.guardar(datos);
+            const volver = params.get("volver");
+            location.replace(volver && /^[a-z]+\.html(#[a-z]+)?$/.test(volver) ? volver : Sesion.inicio());
+        } catch (e) {
+            aviso.textContent = e.message;
+            aviso.classList.remove("oculto");
+            clave.value = "";
+            clave.focus();
+        }
+    });
+</script>
+</body>
+</html>

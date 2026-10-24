@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- App para teléfono (se puede instalar en la pantalla de inicio) -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#7e22ce">
+    <link rel="apple-touch-icon" href="img/app/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="San Carlos">
+    <title>Pedidos | Panadería San Carlos</title>
+    <link rel="icon" href="img/umg.png">
+    <link rel="stylesheet" href="css/estilos.css?v=20261022">
+</head>
+<body>
+<main>
+    <div class="contenedor">
+
+        <!-- ===== Nuevo pedido ===== -->
+        <section data-seccion="nuevo" id="sec-nuevo">
+            <div class="titulo-pagina">
+                <span class="etiqueta-codigo">POST /webapi/Pedidos/RegistrarPedido</span>
+                <h1>Nuevo pedido</h1>
+                <p>Ingrese la cantidad de cada pan que necesita para el despacho de la mañana.</p>
+            </div>
+
+            <form class="tarjeta" id="formPedido" novalidate>
+                <div class="fila-form">
+                    <div class="campo">
+                        <label for="selSucursal">Sucursal *</label>
+                        <select id="selSucursal"><option value="">Cargando…</option></select>
+                        <span class="msg-error"></span>
+                    </div>
+                    <div class="campo">
+                        <label for="fechaEntrega">Fecha de entrega *</label>
+                        <input type="date" id="fechaEntrega">
+                        <span class="msg-error"></span>
+                    </div>
+                </div>
+
+                <div class="tabla-contenedor mt">
+                    <table>
+                        <thead>
+                            <tr><th>Pan</th><th class="num">Precio</th><th class="num">Cantidad</th><th class="num">Subtotal</th></tr>
+                        </thead>
+                        <tbody id="tablaPanes"><tr><td colspan="4" class="vacio">Cargando panes…</td></tr></tbody>
+                        <tfoot>
+                            <tr class="fila-total">
+                                <td colspan="2">Total del pedido</td>
+                                <td class="num" id="totalUnidades">0 u.</td>
+                                <td class="num" id="totalPedido">Q 0.00</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <p id="errorDetalle" style="color:var(--error);font-size:.85rem;margin:10px 0 0"></p>
+
+                <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap">
+                    <button type="button" class="btn btn-claro" id="btnLimpiar">Limpiar</button>
+                    <button type="submit" class="btn btn-rojo" id="btnEnviar">Enviar pedido</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- ===== Historial ===== -->
+        <section data-seccion="historial" id="sec-historial" class="oculto">
+            <div class="titulo-pagina">
+                <span class="etiqueta-codigo">GET /webapi/Pedidos/ObtenerPedidos</span>
+                <h1>Mis pedidos</h1>
+                <p>Estado de los pedidos de su sucursal. Cuando reciba el pan, márquelo como entregado.</p>
+            </div>
+            <div class="tarjeta">
+                <div class="tarjeta-cabecera">
+                    <select id="filtroEstado" aria-label="Filtrar por estado" style="width:auto">
+                        <option value="">Todos los estados</option>
+                        <option value="PENDIENTE">Pendientes</option>
+                        <option value="DESPACHADO">Despachados</option>
+                        <option value="ENTREGADO">Entregados</option>
+                        <option value="CANCELADO">Cancelados</option>
+                    </select>
+                    <a class="btn btn-claro btn-chico" href="pedidos.html#nuevo">+ Nuevo pedido</a>
+                </div>
+                <div class="tabla-contenedor">
+                    <table>
+                        <thead><tr><th>#</th><th>Fecha pedido</th><th>Entrega</th><th>Estado</th><th class="num">Total</th><th class="num">Acciones</th></tr></thead>
+                        <tbody id="tablaPedidos"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<div class="modal-fondo" id="modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
+        <div class="tarjeta-cabecera">
+            <h2 id="modalTitulo">Detalle</h2>
+            <button class="btn btn-claro btn-chico" type="button" onclick="cerrarModal()">Cerrar</button>
+        </div>
+        <div id="modalCuerpo"></div>
+    </div>
+</div>
+
+<script src="js/comun.js"></script>
+<script src="js/pedidos.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+# Configuración para Render (render.com). Crea un "Web Service" gratuito con Docker.
+services:
+  - type: web
+    name: panaderia-san-carlos
+    runtime: docker
+    plan: free
+    healthCheckPath: /webapi/myresource
+    envVars:
+      - key: FIREBASE_PROYECTO
+        value: panaderia-san-carlos-1d6f5
+      - key: SECRETO
+        generateValue: true
+      - key: FIREBASE_CREDENCIALES_JSON
+        sync: false          # se pega a mano en el panel de Render (es secreta)

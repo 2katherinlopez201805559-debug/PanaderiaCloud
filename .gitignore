@@ -1,0 +1,9 @@
+target/
+nbproject/private/
+*.class
+# CLAVE PRIVADA DE FIREBASE: nunca se sube a GitHub
+clave-firebase.json
+*-firebase-adminsdk-*.json
+~$*
+Thumbs.db
+desktop.ini

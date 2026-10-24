@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- App para teléfono (se puede instalar en la pantalla de inicio) -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#7e22ce">
+    <link rel="apple-touch-icon" href="img/app/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="San Carlos">
+    <title>Pagos | Panadería San Carlos</title>
+    <link rel="icon" href="img/umg.png">
+    <link rel="stylesheet" href="css/estilos.css?v=20261022">
+</head>
+<body>
+<main>
+    <div class="contenedor">
+
+        <!-- ===== Pagar pedido (sucursal) / Registrar cobro (gerencia) ===== -->
+        <section data-seccion="pagar" id="sec-pagar">
+            <div class="titulo-pagina">
+                <span class="etiqueta-codigo">POST /webapi/Pagos/RegistrarPago</span>
+                <h1 id="tituloPagar">Pagar pedido</h1>
+                <p id="textoPagar">Elija el pedido, la forma de pago y escriba los datos del comprobante.</p>
+            </div>
+
+            <div class="grid grid-lateral">
+                <form class="tarjeta" id="formPago" novalidate>
+                    <!-- Paso 1: pedido -->
+                    <h3 class="paso-pago"><span>1</span> Pedido a pagar</h3>
+                    <div class="campo">
+                        <label for="selPedido">Pedido *</label>
+                        <select id="selPedido"><option value="">Cargando…</option></select>
+                        <span class="msg-error"></span>
+                    </div>
+                    <div id="resumenSaldo" class="resumen-saldo oculto"></div>
+
+                    <!-- Paso 2: forma de pago -->
+                    <h3 class="paso-pago"><span>2</span> Forma de pago</h3>
+                    <div class="metodos-pago" id="metodos">
+                        <label class="metodo-pago"><input type="radio" name="metodo" value="EFECTIVO">
+                            <span class="ico">💵</span><strong>Efectivo</strong>
+                            <small>Se entrega al repartidor</small></label>
+                        <label class="metodo-pago"><input type="radio" name="metodo" value="TRANSFERENCIA">
+                            <span class="ico">📱</span><strong>Transferencia</strong>
+                            <small>Banca en línea o app del banco</small></label>
+                        <label class="metodo-pago"><input type="radio" name="metodo" value="DEPOSITO">
+                            <span class="ico">🏦</span><strong>Depósito</strong>
+                            <small>En agencia o agente bancario</small></label>
+                        <label class="metodo-pago"><input type="radio" name="metodo" value="TARJETA">
+                            <span class="ico">💳</span><strong>Tarjeta</strong>
+                            <small>Débito o crédito: POS o link de pago</small></label>
+                    </div>
+                    <p class="msg-error" id="errorMetodo"></p>
+
+                    <!-- Instrucciones según la forma de pago -->
+                    <div id="instrucciones" class="instrucciones-pago oculto"></div>
+
+                    <!-- Paso 3: datos -->
+                    <h3 class="paso-pago"><span>3</span> Datos del pago</h3>
+                    <div class="fila-form">
+                        <div class="campo">
+                            <label for="monto">Monto (Q) * <button type="button" class="btn-enlace" id="btnTodo">Pagar todo</button></label>
+                            <input type="number" id="monto" min="0.01" step="0.01" placeholder="0.00">
+                            <span class="msg-error"></span>
+                        </div>
+                        <div class="campo oculto" id="campoBanco">
+                            <label for="banco">Banco *</label>
+                            <select id="banco">
+                                <option value="">— Seleccione —</option>
+                                <option>Banco Industrial</option>
+                                <option>Banrural</option>
+                                <option>BAM</option>
+                                <option>G&amp;T Continental</option>
+                                <option>Banco Promerica</option>
+                                <option>BAC Credomatic</option>
+                                <option>Otro</option>
+                            </select>
+                            <span class="msg-error"></span>
+                        </div>
+                        <div class="campo oculto" id="campoTipoTarjeta">
+                            <label for="tipoTarjeta">Tipo de tarjeta *</label>
+                            <select id="tipoTarjeta">
+                                <option value="Débito">Débito</option>
+                                <option value="Crédito">Crédito</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="campo oculto" id="campoReferencia">
+                        <label for="referencia" id="labelReferencia">No. de referencia *</label>
+                        <input id="referencia" maxlength="40" autocomplete="off" placeholder="Ej. 123456789">
+                        <span class="ayuda" id="ayudaReferencia"></span>
+                        <span class="msg-error"></span>
+                    </div>
+                    <div class="campo">
+                        <label for="observacion">Observación <span class="texto-suave">(opcional)</span></label>
+                        <textarea id="observacion" maxlength="200" rows="2" placeholder="Ej. Pago de la semana"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-rojo" id="btnPagar" style="width:100%;justify-content:center">Registrar pago</button>
+                    <p class="texto-suave" style="font-size:.8rem;margin:10px 0 0;text-align:center">
+                        🔒 El sistema nunca pide ni guarda números de tarjeta ni contraseñas del banco.</p>
+                </form>
+
+                <div class="tarjeta">
+                    <h2 id="tituloSaldos">Mis saldos</h2>
+                    <p class="texto-suave" style="font-size:.88rem">Saldo = total del pedido − devoluciones aprobadas − pagos confirmados.</p>
+                    <div class="tabla-contenedor">
+                        <table>
+                            <thead><tr><th>#</th><th id="colSucursalSaldo" class="oculto">Sucursal</th><th class="num">Total</th><th class="num">Saldo</th><th>Pago</th></tr></thead>
+                            <tbody id="tablaSaldos"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== Historial de pagos / revisión (gerente) ===== -->
+        <section data-seccion="historial" id="sec-historial" class="oculto">
+            <div class="titulo-pagina">
+                <span class="etiqueta-codigo">GET /webapi/Pagos/ObtenerPagos</span>
+                <h1 id="tituloHistorial">Mis pagos</h1>
+                <p id="textoHistorial">Los pagos quedan "en revisión" hasta que gerencia confirme que recibió el dinero.</p>
+            </div>
+            <div class="tarjeta">
+                <div class="tarjeta-cabecera">
+                    <select id="filtroEstado" aria-label="Filtrar por estado" style="width:auto">
+                        <option value="">Todos los estados</option>
+                        <option value="PENDIENTE">En revisión</option>
+                        <option value="CONFIRMADO">Confirmados</option>
+                        <option value="RECHAZADO">Rechazados</option>
+                    </select>
+                    <a class="btn btn-claro btn-chico" href="pagos.html#pagar" id="linkNuevoPago">+ Registrar pago</a>
+                </div>
+                <div class="tabla-contenedor">
+                    <table>
+                        <thead><tr><th>#</th><th>Pedido</th><th>Sucursal</th><th>Forma</th><th>Banco / Ref.</th>
+                            <th class="num">Monto</th><th>Estado</th><th>Fecha</th><th class="num">Acciones</th></tr></thead>
+                        <tbody id="tablaPagos"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== Cuentas por cobrar (gerente) ===== -->
+        <section data-seccion="cuentas" id="sec-cuentas" class="oculto">
+            <div class="titulo-pagina">
+                <span class="etiqueta-codigo">GET /webapi/Pagos/EstadoCuenta</span>
+                <h1>Cuentas por cobrar</h1>
+                <p>Cuánto debe cada sucursal, cuánto está en revisión y cuánto ya se cobró.</p>
+            </div>
+            <div class="grid grid-4" style="margin-bottom:20px">
+                <div class="tarjeta kpi alerta"><span class="valor" id="kpiPorCobrar">–</span><span class="nombre">Por cobrar</span></div>
+                <div class="tarjeta kpi"><span class="valor" id="kpiRevision">–</span><span class="nombre">En revisión</span></div>
+                <div class="tarjeta kpi"><span class="valor" id="kpiCobrado">–</span><span class="nombre">Cobrado</span></div>
+                <div class="tarjeta kpi"><span class="valor" id="kpiCredito">–</span><span class="nombre">Notas de crédito</span></div>
+            </div>
+            <div class="tarjeta">
+                <div class="tarjeta-cabecera">
+                    <h2>Estado de cuenta por pedido</h2>
+                    <select id="filtroSucursal" aria-label="Filtrar por sucursal" style="width:auto">
+                        <option value="">Todas las sucursales</option>
+                    </select>
+                </div>
+                <div class="tabla-contenedor">
+                    <table>
+                        <thead><tr><th>#</th><th>Sucursal</th><th>Entrega</th><th>Pedido</th><th class="num">Total</th>
+                            <th class="num">Crédito</th><th class="num">Pagado</th><th class="num">En revisión</th>
+                            <th class="num">Saldo</th><th>Pago</th></tr></thead>
+                        <tbody id="tablaCuentas"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<div class="modal-fondo" id="modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
+        <div class="tarjeta-cabecera">
+            <h2 id="modalTitulo">Detalle</h2>
+            <button class="btn btn-claro btn-chico" type="button" onclick="cerrarModal()">Cerrar</button>
+        </div>
+        <div id="modalCuerpo"></div>
+    </div>
+</div>
+
+<script src="js/comun.js"></script>
+<script src="js/pagos.js"></script>
+</body>
+</html>

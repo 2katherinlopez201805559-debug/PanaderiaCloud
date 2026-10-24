@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- App para teléfono (se puede instalar en la pantalla de inicio) -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#7e22ce">
+    <link rel="apple-touch-icon" href="img/app/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="San Carlos">
+    <title>Sucursal | Panadería San Carlos</title>
+    <link rel="icon" href="img/umg.png">
+    <link rel="stylesheet" href="css/estilos.css?v=20261022">
+</head>
+<body>
+
+<!-- ============ PRESENTACIÓN DE LA SUCURSAL ============
+     Se abre desde index.html así: sucursal.html?id=2
+     Los datos (nombre, dirección, teléfono) vienen de Firebase (Firestore) por
+     GET /webapi/Sucursales/ObtenerSucursales                       -->
+<section class="portada portada-sucursal">
+    <div class="contenedor">
+        <div>
+            <a class="volver-link" href="index.html#sucursales">← Todas las sucursales</a>
+            <span class="sello-portada" id="sello">🏪 Sucursal</span>
+            <h1 id="nombreSucursal">Cargando sucursal…</h1>
+            <p id="frase">Pan fresco de Panadería San Carlos, todos los días.</p>
+            <ul class="datos-sucursal">
+                <li>📍 <span id="direccion">—</span></li>
+                <li>📞 <span id="telefono">—</span></li>
+                <li>🕕 <span id="horario">—</span></li>
+            </ul>
+            <div class="acciones">
+                <!-- BOTÓN PRINCIPAL: lleva al login de ESTA sucursal -->
+                <a class="btn btn-claro" id="btnLoginSucursal" href="login.html">🔐 Ingresar como esta sucursal</a>
+                <a class="btn btn-borde" href="#panes">Ver el pan que recibe</a>
+            </div>
+        </div>
+        <div class="arte-sucursal" id="arteSucursal" aria-hidden="true"></div>
+    </div>
+    </div>
+</section>
+
+<main>
+    <div class="contenedor">
+
+        <!-- ============ LO ÚNICO DE ESTA SUCURSAL (cambia en cada una) ============ -->
+        <section class="seccion">
+            <div class="titulo-seccion">
+                <h2 id="tituloUnico">Lo que nos hace especiales</h2>
+                <p id="subUnico"></p>
+            </div>
+            <div class="grid grid-3" id="destacados"></div>
+        </section>
+
+        <!-- ============ FOTO DE LA SUCURSAL (img/sucursales/<nombre>.jpg) ============ -->
+        <section class="seccion oculto" id="secFoto">
+            <figure class="postal">
+                <img id="fotoSucursal" src="" alt="">
+                <figcaption id="pieFoto"></figcaption>
+            </figure>
+        </section>
+
+        <!-- ============ ESPECIALIDAD DE LA CASA ============ -->
+        <section class="seccion">
+            <div class="especialidad" id="especialidad"></div>
+        </section>
+
+        <!-- ============ QUÉ HACE LA SUCURSAL EN EL SISTEMA ============ -->
+        <section class="seccion">
+            <div class="titulo-seccion">
+                <h2>¿Qué hace esta sucursal en el sistema?</h2>
+                <p>Al ingresar con su usuario y contraseña, la sucursal puede:</p>
+            </div>
+            <div class="grid grid-3">
+                <div class="tarjeta paso-sucursal">
+                    <span class="numero">1</span>
+                    <h3>📝 Hacer su pedido</h3>
+                    <p class="texto-suave">Elige el pan y la cantidad para el día siguiente. Solo las sucursales hacen pedidos.</p>
+                </div>
+                <div class="tarjeta paso-sucursal">
+                    <span class="numero">2</span>
+                    <h3>🚚 Recibir el despacho</h3>
+                    <p class="texto-suave">Gerencia despacha el pedido temprano y la sucursal ve el estado en línea.</p>
+                </div>
+                <div class="tarjeta paso-sucursal">
+                    <span class="numero">3</span>
+                    <h3>↩️ Devolver pan</h3>
+                    <p class="texto-suave">Si llegó pan que no pidió, de más o dañado, registra la devolución.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ PAN QUE RECIBE ============ -->
+        <section class="seccion" id="panes">
+            <div class="titulo-seccion">
+                <h2>Pan que recibe cada mañana</h2>
+                <p>Precios actualizados desde nuestro sistema.</p>
+            </div>
+            <div class="catalogo" id="catalogo">
+                <div class="pan"><span class="texto-suave">Cargando panes…</span></div>
+            </div>
+        </section>
+
+        <!-- ============ LLAMADO A INGRESAR ============ -->
+        <section class="seccion" style="text-align:center">
+            <h2 id="tituloIngreso">¿Trabajas en esta sucursal?</h2>
+            <p class="texto-suave">Ingresa con el usuario de la sucursal y tu contraseña.</p>
+            <a class="btn btn-rojo" id="btnLoginSucursal2" href="login.html">🔐 Ingresar</a>
+        </section>
+    </div>
+</main>
+
+<script src="js/comun.js"></script>
+<script>
+    montarPublico();
+
+    /* =================================================================
+       TEMAS: cada sucursal tiene su propia presentación.
+       Aquí cambia colores (c1, c2, c3), icono, frase, horario,
+       especialidad, tarjetas y el dibujo de la portada.
+       ================================================================= */
+    const TEMAS = {
+        CENTRAL: {
+            foto: "img/sucursales/central.jpg",
+            icono: "🏛️", etiqueta: "Casa matriz", c1: "#3b0764", c2: "#7e22ce", c3: "#f0abfc",
+            frase: "Donde todo comienza: aquí se hornea el pan de todas nuestras sucursales desde las 4:00 a.m.",
+            horario: "Lunes a domingo de 5:30 a 20:00",
+            especial: "Francés", porQue: "Nuestro clásico: crujiente por fuera, suave por dentro. De aquí sale para toda la ciudad.",
+            tituloUnico: "El corazón de San Carlos", subUnico: "La sucursal más grande y la primera en abrir.",
+            destacados: [["🔥", "Horno principal", "Aquí están los hornos donde se produce todo el pan del día."],
+                         ["📦", "Centro de despacho", "Desde Central salen los pedidos hacia las demás sucursales."],
+                         ["👩‍🍳", "Gerencia", "La gerencia revisa producción, insumos y devoluciones."]],
+            arte: `<div class="arte arte-central">
+                      <div class="chimenea">💨</div>
+                      <div class="edificio"><span class="rotulo">CASA MATRIZ</span>
+                        <div class="ventanas"><span>🥖</span><span>🍞</span><span>🥐</span><span>🥯</span><span>🧁</span><span>🥮</span></div>
+                        <div class="puerta-grande">1990</div></div></div>`
+        },
+        CHIVA: {
+            foto: "img/sucursales/chiva.jpg",
+            icono: "🐐", etiqueta: "Sucursal de barrio", c1: "#9d174d", c2: "#ec4899", c3: "#fbcfe8",
+            frase: "La panadería de la esquina: pan calientito, trato de vecinos y la sheca más famosa del barrio.",
+            horario: "Lunes a sábado de 6:00 a 19:00 · Domingo de 6:00 a 12:00",
+            especial: "Shecas", porQue: "Con jugo de fruta y azúcar encima. Los vecinos las apartan desde temprano.",
+            tituloUnico: "Pan de barrio, como en casa", subUnico: "Aquí nos conocemos por nombre.",
+            destacados: [["🏡", "Cerca de tu casa", "En el centro del barrio, a pocos pasos de la escuela y el parque."],
+                         ["☕", "Pan con café", "Por la tarde el pan dulce sale para el cafecito."],
+                         ["🎒", "Refacción escolar", "Panes listos para la refacción de los niños."]],
+            arte: `<div class="arte arte-chiva">
+                      <div class="sol">☀️</div>
+                      <div class="casita"><div class="techo"></div><div class="frente"><span class="rotulo">CHIVA</span><span class="ventanita">🥯</span><span class="ventanita">🥖</span></div></div>
+                      <div class="pasto">🌷 🐐 🌼</div></div>`
+        },
+        BARCO: {
+            foto: "img/sucursales/barco.jpg",
+            icono: "⛵", etiqueta: "Sucursal del puerto", c1: "#312e81", c2: "#8b5cf6", c3: "#c4b5fd",
+            frase: "Navegamos cada mañana con la canasta llena: cachos y francés para empezar el día con buen viento.",
+            horario: "Lunes a sábado de 5:30 a 18:30 · Domingo cerrado",
+            especial: "Cachos", porQue: "Hojaldrados con leche, la tripulación los pide por docena.",
+            tituloUnico: "¡Todos a bordo!", subUnico: "Una sucursal con rumbo fijo: pan fresco cada día.",
+            destacados: [["⚓", "Puerto seguro", "Siempre abiertos temprano para los que salen a trabajar."],
+                         ["🧺", "Canasta marinera", "Combinación de francés y cachos para llevar."],
+                         ["🌊", "Entrega puntual", "El despacho llega antes de las 6:00 a.m."]],
+            arte: `<div class="arte arte-barco">
+                      <div class="nube">☁️</div>
+                      <div class="nave"><div class="vela">🥐<br><b>BARCO</b></div><div class="casco">🥖 🍞 🥖</div></div>
+                      <div class="olas"></div></div>`
+        },
+        HEYDI: {
+            foto: "img/sucursales/heydi.jpg",
+            icono: "🌸", etiqueta: "Sucursal floral", c1: "#86198f", c2: "#e879f9", c3: "#fae8ff",
+            frase: "Dulzura en cada pan: batidas suaves, cortadas para el café y una sonrisa en el mostrador.",
+            horario: "Lunes a sábado de 6:30 a 19:30 · Domingo de 7:00 a 13:00",
+            especial: "Batidas", porQue: "Ligeras, suaves y perfectas para la merienda de la tarde.",
+            tituloUnico: "Un rincón dulce", subUnico: "La sucursal con el pan más dulce de San Carlos.",
+            destacados: [["🎂", "Para celebrar", "Pan dulce por encargo para cumpleaños y reuniones."],
+                         ["💐", "Ambiente floral", "Un mostrador lleno de flores y colores."],
+                         ["💝", "Atención amable", "El cliente siempre se va con una sonrisa."]],
+            arte: `<div class="arte arte-heydi">
+                      <span class="flor f1">🌸</span><span class="flor f2">🌷</span><span class="flor f3">🌺</span><span class="flor f4">💮</span>
+                      <div class="pastel"><span class="rotulo">HEYDI</span><div class="pisos">🧁 🍰 🧁</div></div></div>`
+        },
+        TERMINAL: {
+            foto: "img/sucursales/terminal.jpg",
+            icono: "🚌", etiqueta: "Sucursal viajera", c1: "#4c1d95", c2: "#db2777", c3: "#fed7aa",
+            frase: "Para los que madrugan: pan fresco antes de subir al bus. ¡Llévalo para el camino!",
+            horario: "Todos los días de 4:30 a 21:00",
+            especial: "Campechanas", porQue: "Doradas y azucaradas, aguantan el viaje sin quebrarse.",
+            tituloUnico: "Pan para el camino", subUnico: "La sucursal que abre primero y cierra de último.",
+            destacados: [["⏰", "Abre a las 4:30", "Listos para los primeros buses de la mañana."],
+                         ["🛍️", "Bolsa viajera", "Pan empacado listo para llevar."],
+                         ["🗺️", "Para todo el país", "Nuestro pan viaja con los pasajeros a todos lados."]],
+            arte: `<div class="arte arte-terminal">
+                      <div class="amanecer"></div>
+                      <div class="bus"><span class="rotulo">TERMINAL</span><div class="ventanas-bus"><span>🥮</span><span>🥖</span><span>🥯</span><span>🍞</span></div>
+                        <div class="ruedas"><i></i><i></i></div></div>
+                      <div class="carretera"></div></div>`
+        }
+    };
+    const TEMA_GENERAL = {
+        icono: "🏪", etiqueta: "Sucursal", c1: "#4a1d6e", c2: "#c2185b", c3: "#ffd1e8",
+        frase: "Pan fresco de Panadería San Carlos, todos los días.", horario: "Lunes a sábado de 6:00 a 19:00",
+        especial: "Francés", porQue: "Nuestro pan más pedido.", tituloUnico: "Lo que nos hace especiales", subUnico: "",
+        destacados: [["🥖", "Pan fresco", "Recibimos pan recién horneado cada mañana."], ["📝", "Pedido en línea", "Pedimos lo que necesitamos para el día."], ["↩️", "Devoluciones", "Si llega pan que no pedimos, lo devolvemos."]],
+        arte: `<div class="arte arte-central"><div class="edificio"><span class="rotulo">SAN CARLOS</span><div class="ventanas"><span>🥖</span><span>🍞</span><span>🥐</span></div></div></div>`
+    };
+    let temaActual = TEMA_GENERAL;
+
+    const EMOJIS = { "Cubos": "🍞", "Especial": "🥨", "Francés": "🥖", "Alemán": "🍩", "Cachos": "🥐",
+                     "Cortadas": "🍰", "Batidas": "🧁", "Campechanas": "🥮", "Shecas": "🥯" };
+
+    // Foto del pan (img/panes/<nombre>.jpg). Si no existe la foto, se muestra el emoji.
+    function fotoPan(nombre, clase = "foto-pan") {
+        const archivo = String(nombre || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+        const emoji = EMOJIS[nombre] || "🍞";
+        return `<img class="${clase}" src="img/panes/${archivo}.jpg" alt="${escaparHTML(nombre)}" loading="lazy"
+                     onerror="this.outerHTML='<span class=&quot;emoji&quot;>${emoji}</span>'">`;
+    }
+
+
+    // "Chiva" -> "chiva" (sin tildes, primera palabra, minúsculas) = usuario de la sucursal
+    function usuarioDeSucursal(nombre) {
+        return String(nombre || "").normalize("NFD").replace(/[̀-ͯ]/g, "")
+            .trim().split(/\s+/)[0].toLowerCase();
+    }
+
+    (async function () {
+        const id = Number(new URLSearchParams(location.search).get("id"));
+        try {
+            const s = (await Api.sucursales()).find(x => x.ID_SUCURSAL === id);
+            if (!s) {
+                document.getElementById("nombreSucursal").textContent = "Sucursal no encontrada";
+                document.getElementById("frase").innerHTML = 'Regrese a <a href="index.html#sucursales" style="color:#fff;text-decoration:underline">la lista de sucursales</a>.';
+                document.querySelectorAll("#btnLoginSucursal, #btnLoginSucursal2").forEach(b => b.classList.add("oculto"));
+                return;
+            }
+            const nombre = String(s.NOMBRE);
+            const usuario = usuarioDeSucursal(nombre);
+            document.title = `Sucursal ${nombre} | Panadería San Carlos`;
+            document.getElementById("sello").textContent = `${(TEMAS[usuarioDeSucursal(nombre).toUpperCase()] || TEMA_GENERAL).icono} ${(TEMAS[usuarioDeSucursal(nombre).toUpperCase()] || TEMA_GENERAL).etiqueta} · #${s.ID_SUCURSAL}`;
+            document.getElementById("nombreSucursal").innerHTML = `Sucursal <em>${escaparHTML(nombre)}</em>`;
+            const clave = usuarioDeSucursal(nombre).toUpperCase();
+            const t = temaActual = TEMAS[clave] || TEMA_GENERAL;
+            document.body.classList.add("tema-" + clave.toLowerCase());
+            const raiz = document.documentElement.style;
+            raiz.setProperty("--suc1", t.c1); raiz.setProperty("--suc2", t.c2); raiz.setProperty("--suc3", t.c3);
+            document.getElementById("frase").textContent = t.frase;
+            document.getElementById("horario").textContent = t.horario;
+            if (t.foto) {
+                // Foto de la sucursal como fondo de la portada + postal completa más abajo
+                const portada = document.querySelector(".portada-sucursal");
+                portada.classList.add("con-foto");
+                portada.style.setProperty("--suc-foto", `url("${new URL(t.foto, location.href).href}")`); // ruta completa
+                document.getElementById("fotoSucursal").src = t.foto;
+                document.getElementById("fotoSucursal").alt = `Fachada de la Sucursal ${nombre}`;
+                document.getElementById("pieFoto").textContent = `${t.icono} Sucursal ${nombre} — ${t.etiqueta}`;
+                document.getElementById("secFoto").classList.remove("oculto");
+            } else {
+                document.getElementById("arteSucursal").innerHTML = t.arte;
+            }
+            document.getElementById("tituloUnico").textContent = `${t.icono} ${t.tituloUnico}`;
+            document.getElementById("subUnico").textContent = t.subUnico;
+            document.getElementById("destacados").innerHTML = t.destacados.map(([ico, tit, txt]) => `
+                <div class="tarjeta destacado"><span class="ico">${ico}</span><h3>${escaparHTML(tit)}</h3><p class="texto-suave">${escaparHTML(txt)}</p></div>`).join("");
+            document.getElementById("direccion").textContent = s.DIRECCION || "Por definir";
+            document.getElementById("telefono").textContent = s.TELEFONO || "Por definir";
+                        document.getElementById("tituloIngreso").textContent = `¿Trabajas en la Sucursal ${nombre}?`;
+
+            // Los dos botones llevan al login con el usuario de ESTA sucursal ya escrito
+            const destino = `login.html?usuario=${encodeURIComponent(usuario)}&sucursal=${encodeURIComponent(nombre)}`;
+            document.getElementById("btnLoginSucursal").href = destino;
+            document.getElementById("btnLoginSucursal").textContent = `🔐 Ingresar como Sucursal ${nombre}`;
+            document.getElementById("btnLoginSucursal2").href = destino;
+            document.getElementById("btnLoginSucursal2").textContent = `🔐 Ingresar a Sucursal ${nombre}`;
+        } catch (e) {
+            document.getElementById("nombreSucursal").textContent = "No se pudo cargar la sucursal";
+            avisar(e.message, "error");
+        }
+
+        try {
+            const panes = (await Api.productos()).filter(p => p.ESTADO === "ACTIVO");
+            const esp = panes.find(p => p.NOMBRE === temaActual.especial);
+            if (esp) {
+                document.getElementById("especialidad").innerHTML = `
+                    ${fotoPan(esp.NOMBRE, "foto-especial")}
+                    <div><span class="sello-esp">⭐ Especialidad de la casa</span>
+                        <h2>${escaparHTML(esp.NOMBRE)} · ${moneda(esp.PRECIO)}</h2>
+                        <p>${escaparHTML(temaActual.porQue)}</p></div>`;
+            }
+            panes.sort((a, b) => (b.NOMBRE === temaActual.especial) - (a.NOMBRE === temaActual.especial));
+            document.getElementById("catalogo").innerHTML = panes.map(p => `
+                <div class="pan ${p.NOMBRE === temaActual.especial ? "pan-estrella" : ""}">
+                    ${fotoPan(p.NOMBRE)}
+                    <strong>${escaparHTML(p.NOMBRE)}</strong>
+                    <div class="precio">${moneda(p.PRECIO)}</div>
+                </div>`).join("");
+        } catch (e) {
+            document.getElementById("catalogo").innerHTML = `<div class="aviso aviso-alerta">${escaparHTML(e.message)}</div>`;
+        }
+    })();
+</script>
+</body>
+</html>
