@@ -21,6 +21,32 @@ El mismo sistema (panes, recetas, pedidos, devoluciones, pagos, sucursales), con
 > Usa el mismo proyecto de Firebase (`panaderia-san-carlos-1d6f5`), así que ve los mismos
 > datos que la versión PanaderiaFirebase.
 
+## Funciones nuevas (octubre 2026)
+
+- **Estadísticas** (Panel → 📊 Estadísticas): panes más vendidos, sucursal que más vende, pan que
+  más pide cada sucursal, registro de ventas y ventas vs. compras. `GET /webapi/Reportes/Estadisticas`
+- **Sucursales** (Panel → 🏪 Sucursales): botón para agregar sucursal; crea también su usuario
+  (primera palabra del nombre). `POST /webapi/Sucursales/CrearSucursal`
+- **Compras y proveedores** (`compras.html`): registro de compras con proveedor, precio y No. de
+  factura; comparación de precios por insumo; alta de proveedores (los 3 primeros son de ejemplo).
+- **Capacidad de producción y pan por vencer** (Panel → Alertas): cuántos panes alcanzan con los
+  insumos y qué insumo los limita; cada producción se guarda como lote con fecha (sale primero el
+  más viejo) y se avisa el pan que vence hoy o ya se venció (`DIAS_VIDA_PAN`, por defecto 3).
+- **🔔 Campanita** (arriba, en todas las páginas del gerente): insumos en el mínimo, pan que no se
+  puede producir, pan por producir y pan por vencer. Se revisa cada minuto.
+- **✈️ Aviso por Telegram al celular del propietario** (gratis) cuando aparece un problema nuevo
+  (y un recordatorio al día mientras siga). El correo (Resend) queda como opción.
+
+### Activar Telegram (una sola vez)
+
+1. En Telegram busque **@BotFather** → `/newbot` → póngale nombre → copie el **token**.
+2. Render → su servicio → *Environment* → agregue `TELEGRAM_BOT_TOKEN` = el token → *Save*.
+3. El propietario abre el bot y presiona **Iniciar** (`/start`).
+4. Panel → Alertas → **Conectar Telegram** → **Enviar aviso ahora (prueba)**.
+
+El correo es opcional: si algún día se quiere, se crea una cuenta en resend.com y se agrega
+`RESEND_API_KEY` (el plan gratis de Render bloquea Gmail/SMTP).
+
 ## Estructura
 
 ```

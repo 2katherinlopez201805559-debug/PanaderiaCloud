@@ -874,3 +874,60 @@ a.sucursal-card.con-foto .btn-ingresar { align-self: flex-end; margin: 4px 16px 
     background: linear-gradient(135deg, #d6336c, #9333ea); box-shadow: 0 10px 24px rgba(147, 51, 234, .35); }
 /* Como app instalada (sin barra del navegador) se respeta la muesca del teléfono */
 @media (display-mode: standalone) { body { padding-top: env(safe-area-inset-top); } }
+
+/* =====================================================================
+   Estadísticas, compras y proveedores
+   ===================================================================== */
+.filtros-fecha { display: flex; gap: 8px; flex-wrap: wrap; }
+.filtros-fecha select, .filtros-fecha input { width: auto; min-width: 140px; }
+.kpi .valor { overflow-wrap: anywhere; }
+.ranking { display: flex; flex-direction: column; gap: 12px; }
+.ranking-fila { display: flex; gap: 12px; align-items: flex-start; }
+.ranking-pos { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0;
+    background: var(--info-fondo); color: var(--azul); font-weight: 700; font-size: .9rem; }
+.ranking-fila.primero .ranking-pos { background: linear-gradient(135deg, #f06292, #8e44c9); color: #fff; }
+.ranking-cuerpo { flex: 1; min-width: 0; }
+.ranking-texto { display: flex; justify-content: space-between; gap: 8px; font-size: .95rem; }
+.ranking-texto span { color: var(--tinta); font-weight: 600; white-space: nowrap; }
+.ranking-barra { height: 10px; background: #f1e6f3; border-radius: 99px; overflow: hidden; margin: 5px 0 3px; }
+.ranking-barra span { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #c77dde, #8e44c9); }
+.ranking-fila.primero .ranking-barra span { background: linear-gradient(90deg, #f06292, #d6336c); }
+.resumen-cuenta { display: flex; flex-direction: column; gap: 6px; }
+.resumen-cuenta > div { display: flex; justify-content: space-between; gap: 10px; padding: 8px 10px; border-radius: 8px; background: var(--fondo); }
+.resumen-cuenta .total { background: var(--ok-fondo); color: var(--ok); }
+.resumen-cuenta .total.negativo { background: var(--error-fondo); color: var(--rojo-osc); }
+.precio-mejor { color: var(--ok); font-weight: 700; background: var(--ok-fondo); }
+.kpi .valor.valor-texto { font-size: 1.35rem; line-height: 1.25; }
+td.nowrap, .tabla-fechas td:nth-child(2) { white-space: nowrap; }
+.resumen-cuenta { max-width: 520px; }
+
+/* 🔔 Campanita del gerente */
+.campanita { position: relative; margin-left: auto; margin-right: 14px; }
+.btn-campana { position: relative; width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--borde);
+    background: #fff; font-size: 1.15rem; cursor: pointer; display: grid; place-items: center; }
+.btn-campana:hover { background: var(--info-fondo); }
+.campana-num { position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 99px;
+    background: var(--rojo); color: #fff; font-size: .72rem; font-weight: 700; display: grid; place-items: center; border: 2px solid #fff; }
+.campana-num.medio { background: #e0a100; }
+.campana-lista { position: absolute; right: 0; top: 50px; width: min(380px, calc(100vw - 32px)); max-height: 70vh; overflow-y: auto;
+    background: #fff; border: 1px solid var(--borde); border-radius: 14px; box-shadow: 0 16px 40px rgba(47, 23, 64, .18); z-index: 60; }
+.campana-titulo { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--borde); }
+.campana-titulo a { font-size: .85rem; }
+.campana-item { display: flex; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--borde); color: var(--texto); text-decoration: none;
+    border-left: 4px solid #e0a100; }
+.campana-item.alto { border-left-color: var(--rojo); }
+.campana-item:hover { background: var(--fondo); }
+.campana-item .ico { font-size: 1.2rem; }
+.campana-item strong { display: block; color: var(--tinta); font-size: .9rem; }
+.campana-item small { display: block; color: var(--suave); font-size: .8rem; line-height: 1.35; }
+.campana-vacia { padding: 18px 14px; margin: 0; color: var(--suave); text-align: center; }
+.estado-telegram { padding: 10px 12px; border-radius: 10px; background: var(--info-fondo); font-size: .9rem; }
+.estado-telegram.ok { background: var(--ok-fondo); color: var(--ok); }
+.pasos-telegram { font-size: .88rem; color: var(--texto); padding-left: 20px; margin: 12px 0 0; }
+.pasos-telegram li { margin-bottom: 6px; }
+.fila-botones { display: flex; gap: 8px; flex-wrap: wrap; }
+@media (max-width: 760px) {
+    .campanita { margin-right: 8px; }
+    .campanita ~ .usuario-chip { margin-left: 0; }
+    .campana-lista { position: fixed; left: 16px; right: 16px; top: 64px; width: auto; }
+}

@@ -1,7 +1,11 @@
 package BACKEND;
 
+import BACKEND.manager.Notificador;
 import BACKEND.utils.Ajustes;
 import java.net.URI;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import org.glassfish.grizzly.http.server.CLStaticHttpHandler;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
@@ -39,6 +43,16 @@ public class Main {
         System.out.println(" Panadería San Carlos funcionando");
         System.out.println(" Abra: http://localhost:" + puerto + "/");
         System.out.println("==============================================");
+
+        // Cada hora (mientras el servidor está encendido) revisa insumos y pan por vencer
+        // y, si hace falta, manda el correo al propietario.
+        ScheduledExecutorService reloj = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "revision-cada-hora");
+            t.setDaemon(true);
+            return t;
+        });
+        reloj.scheduleAtFixedRate(Notificador::revisarEnSegundoPlano, 2, 60, TimeUnit.MINUTES);
+
         Thread.currentThread().join();
     }
 }

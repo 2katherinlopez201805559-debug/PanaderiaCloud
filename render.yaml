@@ -12,3 +12,13 @@ services:
         generateValue: true
       - key: FIREBASE_CREDENCIALES_JSON
         sync: false          # se pega a mano en el panel de Render (es secreta)
+      # Avisos al celular del propietario por Telegram (token de @BotFather)
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false          # se pega a mano en el panel de Render (es secreta)
+      # (Opcional) avisos por correo (https://resend.com)
+      - key: RESEND_API_KEY
+        sync: false          # se pega a mano en el panel de Render (es secreta)
+      - key: CORREO_PROPIETARIO
+        value: 2katherin.lopez.201805559@gmail.com
+      - key: DIAS_VIDA_PAN
+        value: "3"

@@ -70,6 +70,12 @@ const MENU = [
         ]
     },
     {
+        grupo: "Reportes", icono: "📊", roles: ["GERENTE"], items: [
+            { texto: "Estadísticas de ventas", href: "panel.html#estadisticas", roles: ["GERENTE"] },
+            { texto: "Sucursales", href: "panel.html#sucursales", roles: ["GERENTE"] }
+        ]
+    },
+    {
         grupo: "Pagos", icono: "💳", roles: ["GERENTE", "SUCURSAL"], items: [
             { texto: "Pagar pedido", href: "pagos.html#pagar", roles: ["SUCURSAL"] },
             { texto: "Mis pagos", href: "pagos.html#historial", roles: ["SUCURSAL"] },
@@ -80,8 +86,15 @@ const MENU = [
     },
     {
         grupo: "Inventario", icono: "📦", roles: ["GERENTE"], items: [
-            { texto: "Insumos y compras", href: "panel.html#insumos", roles: ["GERENTE"] },
-            { texto: "Alertas de stock", href: "panel.html#alertas", roles: ["GERENTE"] }
+            { texto: "Insumos y existencias", href: "panel.html#insumos", roles: ["GERENTE"] },
+            { texto: "Alertas y avisos", href: "panel.html#alertas", roles: ["GERENTE"] }
+        ]
+    },
+    {
+        grupo: "Compras", icono: "🧾", roles: ["GERENTE"], items: [
+            { texto: "Registrar compra / factura", href: "compras.html#compras", roles: ["GERENTE"] },
+            { texto: "Comparar precios", href: "compras.html#precios", roles: ["GERENTE"] },
+            { texto: "Proveedores", href: "compras.html#proveedores", roles: ["GERENTE"] }
         ]
     }
 ];
@@ -133,6 +146,11 @@ function montarSistema(rolesPermitidos) {
             <header class="barra-superior">
                 <button type="button" class="btn-menu" id="btnMenu" aria-label="Abrir menú">☰</button>
                 <span class="barra-umg">UMG · ${CURSO.carrera} · ${CURSO.plan}</span>
+                ${s.ROL === "GERENTE" ? `
+                <div class="campanita" id="campanita">
+                    <button type="button" class="btn-campana" id="btnCampana" aria-label="Avisos" aria-expanded="false">🔔<span class="campana-num oculto" id="campanaNum">0</span></button>
+                    <div class="campana-lista oculto" id="campanaLista" role="dialog" aria-label="Avisos"></div>
+                </div>` : ""}
                 <div class="usuario-chip">
                     <span class="avatar">${escaparHTML((s.NOMBRE || "?").charAt(0))}</span>
                     <span><strong>${escaparHTML(s.NOMBRE)}</strong><small>${escaparHTML(quien)}</small></span>
@@ -149,6 +167,7 @@ function montarSistema(rolesPermitidos) {
     marcarMenuActivo();
     window.addEventListener("hashchange", marcarMenuActivo);
 
+    if (s.ROL === "GERENTE") iniciarCampanita();
     document.getElementById("btnSalir").addEventListener("click", () => Sesion.cerrar());
     const alternar = (abrir) => document.body.classList.toggle("menu-abierto", abrir);
     document.getElementById("btnMenu").addEventListener("click", () => alternar(!document.body.classList.contains("menu-abierto")));
@@ -157,6 +176,47 @@ function montarSistema(rolesPermitidos) {
 
     agregarToasts();
     return s;
+}
+
+/* ---------------------------------------------------------------------
+   🔔 Campanita del gerente: insumos bajos, pan que no se puede producir,
+   pan por producir y pan por vencer. Se revisa cada minuto.
+   --------------------------------------------------------------------- */
+let avisosVistos = null;
+function iniciarCampanita() {
+    const btn = document.getElementById("btnCampana");
+    const lista = document.getElementById("campanaLista");
+    const abrir = (si) => { lista.classList.toggle("oculto", !si); btn.setAttribute("aria-expanded", si); };
+    btn.addEventListener("click", e => { e.stopPropagation(); abrir(lista.classList.contains("oculto")); });
+    document.addEventListener("click", e => { if (!e.target.closest("#campanita")) abrir(false); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") abrir(false); });
+    revisarCampanita();
+    setInterval(revisarCampanita, 60000);
+}
+
+async function revisarCampanita() {
+    const num = document.getElementById("campanaNum");
+    const lista = document.getElementById("campanaLista");
+    if (!num) return;
+    let avisos;
+    try { avisos = await Api.avisos(); } catch (e) { return; }
+    const altos = avisos.filter(a => a.NIVEL === "ALTO").length;
+    num.textContent = avisos.length;
+    num.classList.toggle("oculto", !avisos.length);
+    num.classList.toggle("medio", !altos);
+    lista.innerHTML = `<div class="campana-titulo"><strong>Avisos</strong><a href="panel.html#alertas">Ver todo</a></div>` +
+        (avisos.length ? avisos.map(a => `
+            <a class="campana-item ${a.NIVEL === "ALTO" ? "alto" : ""}" href="${escaparHTML(a.ENLACE)}">
+                <span class="ico">${a.ICONO}</span>
+                <span><strong>${escaparHTML(a.TITULO)}</strong><small>${escaparHTML(a.DETALLE)}</small></span>
+            </a>`).join("") : `<p class="campana-vacia">✅ Todo en orden.</p>`);
+    // Aviso emergente solo si aparece algo nuevo
+    const claves = new Set(avisos.map(a => a.CLAVE));
+    if (avisosVistos) {
+        const nuevos = avisos.filter(a => !avisosVistos.has(a.CLAVE));
+        if (nuevos.length) avisar(`🔔 ${nuevos[0].TITULO}${nuevos.length > 1 ? ` y ${nuevos.length - 1} aviso(s) más` : ""}`, "error");
+    }
+    avisosVistos = claves;
 }
 
 function marcarMenuActivo() {
@@ -235,7 +295,7 @@ async function api(ruta, opciones = {}) {
     try {
         respuesta = await fetch(`${API_BASE}/${ruta}`, config);
     } catch (e) {
-        throw new Error("No se pudo conectar con el servidor. Verifique que Tomcat esté encendido.");
+        throw new Error("No se pudo conectar con el servidor. Revise su internet e intente de nuevo.");
     }
 
     let datos = null;
@@ -290,7 +350,26 @@ const Api = {
     confirmarPago: (id) => api(`Pagos/${id}/Confirmar`, { method: "POST" }),
     rechazarPago: (id) => api(`Pagos/${id}/Rechazar`, { method: "POST" }),
     alertas: () => api("Reportes/ObtenerAlertas"),
-    resumenProduccion: (fecha) => api("Reportes/ResumenProduccion" + (fecha ? "?fecha=" + encodeURIComponent(fecha) : ""))
+    resumenProduccion: (fecha) => api("Reportes/ResumenProduccion" + (fecha ? "?fecha=" + encodeURIComponent(fecha) : "")),
+    // Estadísticas, capacidad de producción, pan por vencer y avisos por correo
+    estadisticas: (desde, hasta) => api("Reportes/Estadisticas?" + new URLSearchParams({ desde: desde || "", hasta: hasta || "" })),
+    capacidad: () => api("Reportes/CapacidadProduccion"),
+    porVencer: () => api("Reportes/PanesPorVencer"),
+    estadoAvisos: () => api("Reportes/EstadoAvisos"),
+    avisos: () => api("Reportes/Avisos"),
+    conectarTelegram: () => api("Reportes/ConectarTelegram", { method: "POST" }),
+    enviarAviso: () => api("Reportes/EnviarAviso", { method: "POST" }),
+    // Sucursales nuevas
+    crearSucursal: (s) => api("Sucursales/CrearSucursal", { method: "POST", body: s }),
+    actualizarSucursal: (id, s) => api(`Sucursales/${id}/ActualizarSucursal`, { method: "POST", body: s }),
+    // Proveedores, precios y compras (facturas)
+    proveedores: () => api("Proveedores/ObtenerProveedores"),
+    crearProveedor: (p) => api("Proveedores/CrearProveedor", { method: "POST", body: p }),
+    actualizarProveedor: (id, p) => api(`Proveedores/${id}/ActualizarProveedor`, { method: "POST", body: p }),
+    guardarPrecio: (id, idInsumo, precio) => api(`Proveedores/${id}/GuardarPrecio`, { method: "POST", body: { ID_INSUMO: idInsumo, PRECIO: precio } }),
+    compararPrecios: () => api("Proveedores/CompararPrecios"),
+    registrarCompra: (c) => api("Insumos/RegistrarCompra", { method: "POST", body: c }),
+    compras: (desde, hasta, idProveedor) => api("Insumos/ObtenerCompras?" + new URLSearchParams({ desde: desde || "", hasta: hasta || "", idProveedor: idProveedor || "" }))
 };
 
 /* ---------------------------------------------------------------------

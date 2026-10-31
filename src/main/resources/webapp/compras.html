@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- App para teléfono (se puede instalar en la pantalla de inicio) -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#7e22ce">
+    <link rel="apple-touch-icon" href="img/app/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="San Carlos">
+    <title>Compras y proveedores | Panadería San Carlos</title>
+    <link rel="icon" href="img/umg.png">
+    <link rel="stylesheet" href="css/estilos.css?v=20261030">
+</head>
+<body>
+<main>
+    <div class="contenedor">
+
+        <!-- ===== Compras (facturas) ===== -->
+        <section data-seccion="compras" id="sec-compras">
+            <div class="titulo-pagina">
+                <span class="etiqueta-codigo">POST /webapi/Insumos/RegistrarCompra · Firestore · compras</span>
+                <h1>Compras de insumos y facturas</h1>
+                <p>Registre cada factura del proveedor: el insumo sube en inventario y el precio queda guardado para comparar.</p>
+            </div>
+
+            <div class="grid grid-lateral">
+                <form class="tarjeta" id="formCompraFactura" novalidate>
+                    <h2>Registrar compra</h2>
+                    <div class="campo">
+                        <label for="cInsumo">Insumo *</label>
+                        <select id="cInsumo"><option value="">Cargando…</option></select>
+                        <span class="msg-error"></span>
+                    </div>
+                    <div class="campo">
+                        <label for="cProveedor">Proveedor</label>
+                        <select id="cProveedor"><option value="">— Sin proveedor —</option></select>
+                        <small class="texto-suave" id="cSugerencia"></small>
+                    </div>
+                    <div class="fila-form">
+                        <div class="campo">
+                            <label for="cCantidad">Cantidad * <span class="texto-suave" id="cUnidad"></span></label>
+                            <input type="number" id="cCantidad" min="0.001" step="0.001" placeholder="Ej. 25">
+                            <span class="msg-error"></span>
+                        </div>
+                        <div class="campo">
+                            <label for="cPrecio">Precio por unidad (Q)</label>
+                            <input type="number" id="cPrecio" min="0.01" step="0.01" placeholder="Ej. 7.25">
+                            <span class="msg-error"></span>
+                        </div>
+                    </div>
+                    <div class="campo">
+                        <label for="cFactura">No. de factura</label>
+                        <input type="text" id="cFactura" maxlength="40" placeholder="Ej. A-00123">
+                    </div>
+                    <div class="campo">
+                        <label for="cObs">Observación</label>
+                        <input type="text" id="cObs" maxlength="200" placeholder="Opcional">
+                    </div>
+                    <div class="resumen-cuenta" id="cTotal"></div>
+                    <button class="btn btn-primario mt" type="submit" id="btnCompraFactura" style="width:100%;justify-content:center">Registrar compra</button>
+                </form>
+                <div class="tarjeta">
+                    <h2>Resumen del período</h2>
+                    <div class="filtros-fecha mt">
+                        <select id="filtroProveedor" aria-label="Proveedor"><option value="">Todos los proveedores</option></select>
+                        <input type="date" id="desdeCompras" aria-label="Desde">
+                        <input type="date" id="hastaCompras" aria-label="Hasta">
+                    </div>
+                    <div class="grid mt" style="gap:12px">
+                        <div class="tarjeta kpi"><span class="valor" id="kpiCompras">–</span><span class="nombre">Compras</span></div>
+                        <div class="tarjeta kpi"><span class="valor" id="kpiGastado">–</span><span class="nombre">Total gastado</span></div>
+                        <div class="tarjeta kpi"><span class="valor valor-texto" id="kpiTopProv">–</span><span class="nombre">Proveedor al que más le compra</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tarjeta mt">
+                <h2>Registro de compras (facturas)</h2>
+                <div class="tabla-contenedor mt">
+                    <table>
+                        <thead><tr><th>#</th><th>Fecha</th><th>Factura</th><th>Proveedor</th><th>Insumo</th><th class="num">Cantidad</th><th class="num">Precio</th><th class="num">Total</th></tr></thead>
+                        <tbody id="tablaCompras"><tr><td colspan="8" class="vacio">Cargando…</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== Comparar precios ===== -->
+        <section data-seccion="precios" id="sec-precios" class="oculto">
+            <div class="titulo-pagina">
+                <span class="etiqueta-codigo">GET /webapi/Proveedores/CompararPrecios</span>
+                <h1>Comparar precios de insumos</h1>
+                <p>Precio por unidad de cada proveedor. En verde, el más barato; también se muestra lo que pagó la última vez.</p>
+            </div>
+            <div class="tarjeta">
+                <div class="tabla-contenedor">
+                    <table>
+                        <thead id="cabeceraPrecios"></thead>
+                        <tbody id="tablaPrecios"><tr><td class="vacio">Cargando…</td></tr></tbody>
+                    </table>
+                </div>
+                <p class="texto-suave mt" style="font-size:.85rem">Para cambiar un precio, vaya a <a href="compras.html#proveedores">Proveedores</a> → “Precios”.
+                    Cada compra registrada con proveedor y precio también actualiza su precio.</p>
+            </div>
+        </section>
+
+        <!-- ===== Proveedores ===== -->
+        <section data-seccion="proveedores" id="sec-proveedores" class="oculto">
+            <div class="titulo-pagina">
+                <span class="etiqueta-codigo">Firestore · proveedores</span>
+                <h1>Proveedores</h1>
+                <p>Los 3 primeros son de ejemplo: cámbielos por sus proveedores reales o desactívelos.</p>
+            </div>
+            <div class="grid grid-lateral">
+                <div class="tarjeta">
+                    <div class="tabla-contenedor">
+                        <table>
+                            <thead><tr><th>#</th><th>Proveedor</th><th>Teléfono</th><th>NIT</th><th class="num">Precios</th><th>Estado</th><th></th></tr></thead>
+                            <tbody id="tablaProveedores"><tr><td colspan="7" class="vacio">Cargando…</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+                <form class="tarjeta" id="formProveedor" novalidate>
+                    <h2 id="tituloProveedor">➕ Agregar proveedor</h2>
+                    <input type="hidden" id="pId">
+                    <div class="campo">
+                        <label for="pNombre">Nombre *</label>
+                        <input type="text" id="pNombre" maxlength="100" placeholder="Ej. Distribuidora El Molino">
+                        <span class="msg-error"></span>
+                    </div>
+                    <div class="fila-form">
+                        <div class="campo"><label for="pTelefono">Teléfono</label><input type="tel" id="pTelefono" maxlength="20"></div>
+                        <div class="campo"><label for="pNit">NIT</label><input type="text" id="pNit" maxlength="20"></div>
+                    </div>
+                    <div class="campo"><label for="pCorreo">Correo</label><input type="email" id="pCorreo" maxlength="100"></div>
+                    <div class="campo"><label for="pDireccion">Dirección</label><input type="text" id="pDireccion" maxlength="150"></div>
+                    <div class="campo oculto" id="campoEstadoProv">
+                        <label for="pEstado">Estado</label>
+                        <select id="pEstado"><option value="ACTIVO">Activo</option><option value="INACTIVO">Inactivo</option></select>
+                    </div>
+                    <button class="btn btn-verde" type="submit" id="btnProveedor" style="width:100%;justify-content:center">Guardar proveedor</button>
+                    <button class="btn btn-claro btn-chico mt oculto" type="button" id="btnCancelarProv">Cancelar edición</button>
+                </form>
+            </div>
+        </section>
+    </div>
+</main>
+
+<div class="modal-fondo" id="modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
+        <div class="tarjeta-cabecera">
+            <h2 id="modalTitulo">Detalle</h2>
+            <button class="btn btn-claro btn-chico" type="button" onclick="cerrarModal()">Cerrar</button>
+        </div>
+        <div id="modalCuerpo"></div>
+    </div>
+</div>
+
+<script src="js/comun.js"></script>
+<script src="js/compras.js"></script>
+</body>
+</html>

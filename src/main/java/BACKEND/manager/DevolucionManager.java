@@ -141,14 +141,23 @@ public class DevolucionManager extends FirestoreBase {
             String motivo = d.getString("MOTIVO");
             DocumentReference refPan = null;
             double nuevoStock = 0;
+            List<Map<String, Object>> lotes = null;
             if (aprobar && ("NO_SOLICITADO".equals(motivo) || "EXCEDENTE".equals(motivo))) {
                 refPan = doc(PRODUCTOS, num(d.get("ID_PRODUCTO")).longValue());
                 DocumentSnapshot pan = tx.get(refPan).get();
                 nuevoStock = redondear(d(pan.get("STOCK_ACTUAL")) + d(d.get("CANTIDAD")), 2);
+                // Regresa como lote con la fecha del pedido (es pan de ese día, no de hoy)
+                String fechaPan = hoy().toString();
+                DocumentSnapshot pedido = tx.get(doc(PEDIDOS, num(d.get("ID_PEDIDO")).longValue())).get();
+                if (pedido.exists() && pedido.getString("FECHA_ENTREGA") != null
+                        && pedido.getString("FECHA_ENTREGA").compareTo(fechaPan) < 0) {
+                    fechaPan = pedido.getString("FECHA_ENTREGA");
+                }
+                lotes = Lotes.agregar(Lotes.leer(pan), fechaPan, d(d.get("CANTIDAD")));
             }
             // ESCRITURAS
             if (refPan != null) {
-                tx.update(refPan, fila("STOCK_ACTUAL", nuevoStock));   // el pan vuelve al inventario
+                tx.update(refPan, fila("STOCK_ACTUAL", nuevoStock, "LOTES", lotes));   // el pan vuelve al inventario
             }
             tx.update(ref, fila("ESTADO", aprobar ? "APROBADA" : "RECHAZADA",
                     "FECHA_RESOLUCION", ahora(), "ID_USUARIO_RESUELVE", (long) idUsuario));

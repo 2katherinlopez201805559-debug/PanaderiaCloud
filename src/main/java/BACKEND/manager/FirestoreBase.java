@@ -49,6 +49,8 @@ public abstract class FirestoreBase {
     protected static final String DEVOLUCIONES = "devoluciones";
     protected static final String PAGOS = "pagos";
     protected static final String CONTADORES = "contadores";
+    protected static final String PROVEEDORES = "proveedores";
+    protected static final String COMPRAS = "compras";
 
     protected static final ZoneId GUATEMALA = ZoneId.of("America/Guatemala");
     private static final DateTimeFormatter FECHA_HORA = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");

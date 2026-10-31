@@ -98,6 +98,7 @@ public class PedidoManager extends FirestoreBase {
             guardarContador(tx, PEDIDOS, nuevoId);
             return nuevoId;
         });
+        Notificador.revisarEnSegundoPlano();   // ¿alcanzan los insumos para lo que piden? -> correo al propietario
         return (int) id;
     }
 
@@ -127,6 +128,7 @@ public class PedidoManager extends FirestoreBase {
             }
             List<DocumentReference> refs = new ArrayList<DocumentReference>();
             List<Double> nuevos = new ArrayList<Double>();
+            List<List<Map<String, Object>>> lotes = new ArrayList<List<Map<String, Object>>>();
             for (Map.Entry<Long, Double> e : porPan.entrySet()) {
                 DocumentReference refPan = doc(PRODUCTOS, e.getKey());
                 DocumentSnapshot pan = tx.get(refPan).get();
@@ -137,13 +139,15 @@ public class PedidoManager extends FirestoreBase {
                 }
                 refs.add(refPan);
                 nuevos.add(redondear(hay - e.getValue(), 2));
+                lotes.add(Lotes.sacar(Lotes.leer(pan), hay, e.getValue()));   // sale primero el pan más viejo
             }
             for (int i = 0; i < refs.size(); i++) {
-                tx.update(refs.get(i), fila("STOCK_ACTUAL", nuevos.get(i)));
+                tx.update(refs.get(i), fila("STOCK_ACTUAL", nuevos.get(i), "LOTES", lotes.get(i)));
             }
-            tx.update(ref, fila("ESTADO", "DESPACHADO"));
+            tx.update(ref, fila("ESTADO", "DESPACHADO", "FECHA_DESPACHO", ahora()));
             return null;
         });
+        Notificador.revisarEnSegundoPlano();   // ¿algún pan quedó bajo su mínimo? -> correo al propietario
     }
 
     public void Entregar(final int idPedido) throws Exception {

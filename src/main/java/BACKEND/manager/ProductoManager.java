@@ -18,7 +18,7 @@ public class ProductoManager extends FirestoreBase {
     public List<Map<String, Object>> ObtenerProductos() throws Exception {
         List<Map<String, Object>> salida = new ArrayList<Map<String, Object>>();
         for (Map<String, Object> p : todos(PRODUCTOS, "ID_PRODUCTO")) {
-            Map<String, Object> fila = sin(p, "RECETA");
+            Map<String, Object> fila = sin(p, "RECETA", "LOTES");
             fila.put("ALERTA", d(p.get("STOCK_ACTUAL")) <= d(p.get("STOCK_MINIMO")) ? "S" : "N");
             salida.add(fila);
         }
@@ -88,9 +88,13 @@ public class ProductoManager extends FirestoreBase {
             for (int i = 0; i < refs.size(); i++) {
                 tx.update(refs.get(i), fila("STOCK_ACTUAL", nuevos.get(i)));
             }
-            tx.update(refPan, fila("STOCK_ACTUAL", redondear(d(pan.get("STOCK_ACTUAL")) + cantidad, 2)));
+            // El pan nuevo queda registrado como un lote con la fecha de hoy (para saber cuándo se vence)
+            List<Map<String, Object>> lotes = Lotes.agregar(Lotes.leer(pan), hoy().toString(), cantidad);
+            tx.update(refPan, fila("STOCK_ACTUAL", redondear(d(pan.get("STOCK_ACTUAL")) + cantidad, 2),
+                    "LOTES", lotes));
             return null;
         });
+        Notificador.revisarEnSegundoPlano();   // ¿quedó algún insumo en el mínimo? -> correo al propietario
     }
 
     /** Lee la lista RECETA guardada dentro del documento del pan. */

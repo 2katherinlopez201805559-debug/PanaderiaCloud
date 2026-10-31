@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-title" content="San Carlos">
     <title>Panel de producción | Panadería San Carlos</title>
     <link rel="icon" href="img/umg.png">
-    <link rel="stylesheet" href="css/estilos.css?v=20261022">
+    <link rel="stylesheet" href="css/estilos.css?v=20261030">
 </head>
 <body>
 <main>
@@ -31,6 +31,8 @@
             <button type="button" data-tab="panes">Panes y recetas</button>
             <button type="button" data-tab="insumos">Insumos</button>
             <button type="button" data-tab="alertas">Alertas <span class="badge badge-alerta" id="contadorAlertas">0</span></button>
+            <button type="button" data-tab="estadisticas">📊 Estadísticas</button>
+            <button type="button" data-tab="sucursales">🏪 Sucursales</button>
         </nav>
 
         <!-- ================= PEDIDOS ================= -->
@@ -199,6 +201,8 @@
                         <span class="msg-error"></span>
                     </div>
                     <button class="btn btn-primario" type="submit" id="btnCompra" style="width:100%;justify-content:center">Registrar compra</button>
+                    <p class="texto-suave mt" style="font-size:.85rem">¿Con proveedor, precio y No. de factura? Use
+                        <a href="compras.html#compras">Compras y facturas</a>, ahí también puede comparar precios.</p>
                 </form>
             </div>
         </section>
@@ -217,6 +221,159 @@
                     </table>
                 </div>
             </div>
+
+            <div class="tarjeta mt">
+                <div class="tarjeta-cabecera">
+                    <h2>¿Cuánto pan se puede producir con los insumos de hoy?</h2>
+                </div>
+                <p class="texto-suave" style="font-size:.88rem">Según la receta de cada pan. <strong>Insumo que limita</strong> = el que se acaba primero.</p>
+                <div class="tabla-contenedor">
+                    <table>
+                        <thead><tr><th>Pan</th><th class="num">Se pueden hacer</th><th>Insumo que limita</th><th class="num">Pedidos pendientes</th><th class="num">Stock / mínimo</th><th>Estado</th></tr></thead>
+                        <tbody id="tablaCapacidad"><tr><td colspan="6" class="vacio">Cargando…</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tarjeta mt">
+                <div class="tarjeta-cabecera">
+                    <h2>⏰ Pan por vencer</h2>
+                    <span class="texto-suave" style="font-size:.85rem" id="vidaPan"></span>
+                </div>
+                <p class="texto-suave" style="font-size:.88rem">Cada producción se guarda como un lote con su fecha. Al despachar sale primero el pan más viejo.</p>
+                <div class="tabla-contenedor">
+                    <table>
+                        <thead><tr><th>Pan</th><th class="num">Cantidad</th><th>Producido</th><th class="num">Días</th><th>Qué hacer</th></tr></thead>
+                        <tbody id="tablaVencer"><tr><td colspan="5" class="vacio">Cargando…</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tarjeta mt" id="tarjetaCorreo">
+                <h2>📲 Avisos al propietario</h2>
+                <p class="texto-suave" style="font-size:.9rem">Los avisos siempre se ven en la <strong>🔔 campanita</strong> de arriba.
+                    Además, si conecta Telegram, le llega un <strong>mensaje al celular</strong> cuando aparece un problema nuevo
+                    (y un recordatorio al día mientras siga).</p>
+                <div class="estado-telegram" id="estadoTelegram">Consultando…</div>
+                <ol class="pasos-telegram oculto" id="pasosTelegram">
+                    <li>En Telegram busque <strong>@BotFather</strong> → escriba <code>/newbot</code> → póngale un nombre (ej. <em>Panadería San Carlos Avisos</em>) → copie el <strong>token</strong>.</li>
+                    <li>En Render → su servicio → <strong>Environment</strong> → agregue <code>TELEGRAM_BOT_TOKEN</code> = el token → <strong>Save</strong>.</li>
+                    <li>El propietario abre el bot en su celular y presiona <strong>Iniciar</strong> (o escribe <code>/start</code>).</li>
+                    <li>Aquí presione <strong>Conectar Telegram</strong>.</li>
+                </ol>
+                <div class="fila-botones mt">
+                    <button class="btn btn-primario btn-chico" type="button" id="btnConectarTelegram">Conectar Telegram</button>
+                    <button class="btn btn-claro btn-chico" type="button" id="btnProbarCorreo">Enviar aviso ahora (prueba)</button>
+                </div>
+                <p class="texto-suave mt" style="font-size:.8rem" id="estadoCorreo"></p>
+            </div>
+        </section>
+
+        <!-- ================= ESTADÍSTICAS (js/estadisticas.js) ================= -->
+        <section class="panel-pestana" id="tab-estadisticas">
+            <div class="tarjeta">
+                <div class="tarjeta-cabecera">
+                    <h2>Estadísticas de ventas</h2>
+                    <div class="filtros-fecha">
+                        <select id="rangoEst" aria-label="Período">
+                            <option value="7">Últimos 7 días</option>
+                            <option value="30" selected>Últimos 30 días</option>
+                            <option value="mes">Este mes</option>
+                            <option value="todo">Todo</option>
+                            <option value="otro">Otro rango…</option>
+                        </select>
+                        <input type="date" id="desdeEst" aria-label="Desde" class="oculto">
+                        <input type="date" id="hastaEst" aria-label="Hasta" class="oculto">
+                    </div>
+                </div>
+                <p class="texto-suave" style="font-size:.88rem">Venta = pedido <strong>despachado o entregado</strong>, según su fecha de entrega. Se restan las devoluciones aprobadas.</p>
+                <div class="grid grid-4 mt">
+                    <div class="tarjeta kpi"><span class="valor" id="kpiVendido">–</span><span class="nombre">Total vendido</span></div>
+                    <div class="tarjeta kpi"><span class="valor" id="kpiUnidades">–</span><span class="nombre">Panes vendidos</span></div>
+                    <div class="tarjeta kpi"><span class="valor valor-texto" id="kpiPanTop">–</span><span class="nombre">Pan más vendido</span></div>
+                    <div class="tarjeta kpi"><span class="valor valor-texto" id="kpiSucTop">–</span><span class="nombre">Sucursal que más vende</span></div>
+                </div>
+            </div>
+
+            <div class="grid grid-2 mt">
+                <div class="tarjeta">
+                    <h2>🥖 Panes más vendidos</h2>
+                    <div id="rankingPanes" class="ranking mt"></div>
+                </div>
+                <div class="tarjeta">
+                    <h2>🏪 Ventas por sucursal</h2>
+                    <div id="rankingSucursales" class="ranking mt"></div>
+                </div>
+            </div>
+
+            <div class="tarjeta mt">
+                <h2>Detalle por sucursal</h2>
+                <div class="tabla-contenedor mt">
+                    <table>
+                        <thead><tr><th>#</th><th>Sucursal</th><th class="num">Pedidos</th><th class="num">Panes</th><th class="num">Vendido</th><th class="num">Devoluciones</th><th class="num">Neto</th><th>Pan que más pide</th></tr></thead>
+                        <tbody id="tablaEstSucursales"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tarjeta mt">
+                <h2>Ventas vs. compras de insumos</h2>
+                <p class="texto-suave" style="font-size:.85rem">Compras registradas en el mismo período.
+                    <a href="compras.html#compras">Ver compras y facturas →</a></p>
+                <div id="ventasCompras" class="mt"></div>
+            </div>
+
+            <div class="tarjeta mt">
+                <div class="tarjeta-cabecera">
+                    <h2>🧾 Registro de ventas</h2>
+                    <span class="texto-suave" style="font-size:.85rem" id="totalVentas"></span>
+                </div>
+                <div class="tabla-contenedor">
+                    <table>
+                        <thead><tr><th>Pedido</th><th>Entrega</th><th>Sucursal</th><th>Estado</th><th class="num">Total</th><th class="num">Devoluciones</th><th class="num">Neto</th></tr></thead>
+                        <tbody id="tablaVentas"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SUCURSALES (js/estadisticas.js) ================= -->
+        <section class="panel-pestana" id="tab-sucursales">
+            <div class="grid grid-lateral">
+                <div class="tarjeta">
+                    <h2>Sucursales</h2>
+                    <div class="tabla-contenedor mt">
+                        <table>
+                            <thead><tr><th>#</th><th>Sucursal</th><th>Usuario</th><th>Dirección</th><th>Teléfono</th><th>Estado</th><th></th></tr></thead>
+                            <tbody id="tablaSucursales"><tr><td colspan="7" class="vacio">Cargando…</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+                <form class="tarjeta" id="formSucursal" novalidate>
+                    <h2>➕ Agregar sucursal</h2>
+                    <p class="texto-suave" style="font-size:.88rem">Se crea también su usuario para entrar al sistema.</p>
+                    <div class="campo">
+                        <label for="sucNombre">Nombre *</label>
+                        <input type="text" id="sucNombre" maxlength="60" placeholder="Ej. Mercado Sur">
+                        <span class="msg-error"></span>
+                        <small class="texto-suave" id="sucUsuario"></small>
+                    </div>
+                    <div class="campo">
+                        <label for="sucDireccion">Dirección</label>
+                        <input type="text" id="sucDireccion" maxlength="200" placeholder="Ej. 3a. calle 2-15, zona 1">
+                    </div>
+                    <div class="campo">
+                        <label for="sucTelefono">Teléfono</label>
+                        <input type="tel" id="sucTelefono" maxlength="20" placeholder="Ej. 7760-0000">
+                    </div>
+                    <div class="campo">
+                        <label for="sucClave">Contraseña del usuario</label>
+                        <input type="text" id="sucClave" maxlength="100" placeholder="Si la deja vacía: Panaderia2026">
+                        <span class="msg-error"></span>
+                    </div>
+                    <button class="btn btn-verde" type="submit" id="btnSucursal" style="width:100%;justify-content:center">Agregar sucursal</button>
+                </form>
+            </div>
         </section>
     </div>
 </main>
@@ -234,5 +391,6 @@
 <script src="js/comun.js"></script>
 <script src="js/panel.js"></script>
 <script src="js/panes.js"></script>
+<script src="js/estadisticas.js"></script>
 </body>
 </html>
