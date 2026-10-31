@@ -37,6 +37,11 @@ El mismo sistema (panes, recetas, pedidos, devoluciones, pagos, sucursales), con
 - **✈️ Aviso por Telegram al celular del propietario** (gratis) cuando aparece un problema nuevo
   (y un recordatorio al día mientras siga). El correo (Resend) queda como opción.
 
+- **🚚 Vendedores en ruta** (app `ruta.html` en el teléfono): las unidades de reparto (`unidad1`,
+  `unidad2`, `unidad3`, rol VENDEDOR, contraseña `Panaderia2026`) ven los pedidos que se les asignaron,
+  marcan **Entregado** o **reportan un problema** en ruta. El gerente recibe el aviso (campanita +
+  Telegram) y en **Panel → 🚚 Ruta** reasigna el pedido a **otra unidad**. `GET/POST /webapi/Ruta/...`
+
 ### Activar Telegram (una sola vez)
 
 1. En Telegram busque **@BotFather** → `/newbot` → póngale nombre → copie el **token**.
@@ -84,5 +89,6 @@ PanaderiaCloud/
 Plan gratuito: si nadie entra en ~15 minutos el servidor se duerme y la primera visita tarda
 cerca de 1 minuto. Antes de presentar, ábralo un minuto antes.
 
-Usuarios: `kgalvez` (gerente), `central`, `chiva`, `barco`, `heydi`, `terminal`.
+Usuarios: `kgalvez` (gerente), `central`, `chiva`, `barco`, `heydi`, `terminal` (sucursales),
+`unidad1`, `unidad2`, `unidad3` (unidades de reparto).
 Contraseña de todos: `Panaderia2026`.

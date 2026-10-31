@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- App para teléfono (se puede instalar en la pantalla de inicio) -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#7e22ce">
+    <link rel="apple-touch-icon" href="img/app/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="San Carlos">
+    <title>Mi ruta | Panadería San Carlos</title>
+    <link rel="icon" href="img/umg.png">
+    <link rel="stylesheet" href="css/estilos.css?v=20261031">
+</head>
+<body>
+<main>
+    <div class="contenedor">
+
+        <!-- ===== Pedidos que lleva la unidad ===== -->
+        <section data-seccion="entregas" id="sec-entregas">
+            <div class="titulo-pagina">
+                <span class="etiqueta-codigo">GET /webapi/Ruta/MisPedidos</span>
+                <h1>🚚 Mis entregas</h1>
+                <p>Pedidos que gerencia le asignó. Al llegar, marque <strong>Entregado</strong>.
+                    Si algo sale mal en el camino, toque <strong>Reportar problema</strong> y gerencia
+                    enviará otra unidad.</p>
+            </div>
+            <div class="fila-botones" style="margin-bottom:16px">
+                <button class="btn btn-claro btn-chico" type="button" id="btnRecargar">↻ Actualizar</button>
+                <span class="texto-suave" style="font-size:.85rem;align-self:center" id="horaRuta"></span>
+            </div>
+            <div id="listaRuta" class="lista-ruta"><p class="vacio">Cargando…</p></div>
+        </section>
+
+        <!-- ===== Reportes hechos por la unidad ===== -->
+        <section data-seccion="reportes" id="sec-reportes" class="oculto">
+            <div class="titulo-pagina">
+                <span class="etiqueta-codigo">GET /webapi/Ruta/MisReportes</span>
+                <h1>⚠️ Mis reportes</h1>
+                <p>Problemas que reportó en ruta y qué hizo gerencia.</p>
+            </div>
+            <div id="listaReportes" class="lista-ruta"><p class="vacio">Cargando…</p></div>
+        </section>
+    </div>
+</main>
+
+<div class="modal-fondo" id="modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
+        <div class="tarjeta-cabecera">
+            <h2 id="modalTitulo">Detalle</h2>
+            <button class="btn btn-claro btn-chico" type="button" onclick="cerrarModal()">Cerrar</button>
+        </div>
+        <div id="modalCuerpo"></div>
+    </div>
+</div>
+
+<script src="js/comun.js"></script>
+<script src="js/ruta.js"></script>
+</body>
+</html>

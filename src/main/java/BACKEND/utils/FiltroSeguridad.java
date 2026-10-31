@@ -40,6 +40,15 @@ public class FiltroSeguridad implements ContainerRequestFilter {
             return;
         }
 
+        // Una unidad de reparto solo usa su app de ruta (no ve pedidos, pagos ni devoluciones de las sucursales)
+        if (usuario.esVendedor() && !permitidaVendedor(ruta)) {
+            ctx.abortWith(Response.status(Response.Status.FORBIDDEN)
+                    .type(MediaType.APPLICATION_JSON)
+                    .entity(new jsonResult(-1, "ERROR", "Esta opción no está disponible para las unidades de reparto."))
+                    .build());
+            return;
+        }
+
         final boolean seguro = ctx.getSecurityContext() != null && ctx.getSecurityContext().isSecure();
         ctx.setSecurityContext(new SecurityContext() {
             @Override
@@ -62,6 +71,13 @@ public class FiltroSeguridad implements ContainerRequestFilter {
                 return "Bearer";
             }
         });
+    }
+
+    /** Lo que puede usar una unidad de reparto. */
+    private boolean permitidaVendedor(String ruta) {
+        return ruta.startsWith("Auth/") || ruta.startsWith("Ruta/Mis") || ruta.startsWith("Ruta/Entrega/")
+                || ruta.startsWith("Ruta/Reporte/") || ruta.equals("Productos/ObtenerProductos")
+                || ruta.equals("Sucursales/ObtenerSucursales");
     }
 
     /** Rutas que no requieren sesión: login y catálogo público de la portada. */

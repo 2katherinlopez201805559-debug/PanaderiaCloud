@@ -31,6 +31,16 @@ public final class Acceso {
         return u;
     }
 
+    /** Solo una unidad de reparto (vendedor en ruta). */
+    public static UsuarioSesion requerirVendedor(SecurityContext sc) {
+        UsuarioSesion u = usuario(sc);
+        if (!u.esVendedor()) {
+            throw new WebApplicationException(respuesta(Response.Status.FORBIDDEN,
+                    "Esta opción es solo para las unidades de reparto."));
+        }
+        return u;
+    }
+
     /** El gerente puede todo; una sucursal solo lo de su propia sucursal. */
     public static void requerirSucursal(UsuarioSesion u, Integer idSucursalDelRecurso) {
         if (!u.esGerente() && (idSucursalDelRecurso == null || !idSucursalDelRecurso.equals(u.getIdSucursal()))) {

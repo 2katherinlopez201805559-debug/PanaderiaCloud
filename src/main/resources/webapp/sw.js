@@ -5,7 +5,7 @@
    - Las llamadas a webapi/ (datos de Firebase) NUNCA se guardan.
    Si cambia algo y el teléfono muestra lo viejo, suba la VERSION.
    ===================================================================== */
-const VERSION = "panaderia-v2";
+const VERSION = "panaderia-v3";
 
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", e => {

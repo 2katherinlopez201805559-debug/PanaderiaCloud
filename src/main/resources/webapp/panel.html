@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-title" content="San Carlos">
     <title>Panel de producción | Panadería San Carlos</title>
     <link rel="icon" href="img/umg.png">
-    <link rel="stylesheet" href="css/estilos.css?v=20261030">
+    <link rel="stylesheet" href="css/estilos.css?v=20261031">
 </head>
 <body>
 <main>
@@ -31,6 +31,7 @@
             <button type="button" data-tab="panes">Panes y recetas</button>
             <button type="button" data-tab="insumos">Insumos</button>
             <button type="button" data-tab="alertas">Alertas <span class="badge badge-alerta" id="contadorAlertas">0</span></button>
+            <button type="button" data-tab="ruta">🚚 Ruta <span class="badge badge-alerta oculto" id="contadorRuta">0</span></button>
             <button type="button" data-tab="estadisticas">📊 Estadísticas</button>
             <button type="button" data-tab="sucursales">🏪 Sucursales</button>
         </nav>
@@ -269,6 +270,45 @@
             </div>
         </section>
 
+        <!-- ================= RUTA: vendedores en ruta (js/rutapanel.js) ================= -->
+        <section class="panel-pestana" id="tab-ruta">
+            <div class="tarjeta" id="tarjetaProblemas">
+                <div class="tarjeta-cabecera">
+                    <h2>⚠️ Problemas reportados en ruta</h2>
+                    <span class="texto-suave" style="font-size:.85rem">Se actualiza cada 60 segundos</span>
+                </div>
+                <p class="texto-suave" style="font-size:.88rem">Cuando una unidad reporta un problema, elija <strong>otra unidad</strong> para que despache el pedido.</p>
+                <div id="listaProblemas" class="lista-ruta mt"><p class="vacio">Cargando…</p></div>
+            </div>
+
+            <div class="tarjeta mt">
+                <h2>Pedidos en ruta (despachados)</h2>
+                <p class="texto-suave" style="font-size:.88rem">Asigne cada pedido despachado a una unidad de reparto. La unidad lo ve en su teléfono (usuario <code>unidad1</code>, <code>unidad2</code> o <code>unidad3</code>).</p>
+                <div class="tabla-contenedor mt">
+                    <table>
+                        <thead><tr><th>#</th><th>Sucursal</th><th>Entrega</th><th class="num">Total</th><th>Unidad</th><th>Estado</th><th></th></tr></thead>
+                        <tbody id="tablaEnRuta"><tr><td colspan="7" class="vacio">Cargando…</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="grid grid-lateral mt">
+                <div class="tarjeta">
+                    <h2>Unidades de reparto</h2>
+                    <div class="tabla-contenedor mt">
+                        <table>
+                            <thead><tr><th>Unidad</th><th>Usuario</th><th class="num">Pedidos en ruta</th><th class="num">Problemas</th></tr></thead>
+                            <tbody id="tablaUnidades"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tarjeta">
+                    <h2>Historial de reportes</h2>
+                    <div id="historialProblemas" class="mt"></div>
+                </div>
+            </div>
+        </section>
+
         <!-- ================= ESTADÍSTICAS (js/estadisticas.js) ================= -->
         <section class="panel-pestana" id="tab-estadisticas">
             <div class="tarjeta">
@@ -392,5 +432,6 @@
 <script src="js/panel.js"></script>
 <script src="js/panes.js"></script>
 <script src="js/estadisticas.js"></script>
+<script src="js/rutapanel.js"></script>
 </body>
 </html>

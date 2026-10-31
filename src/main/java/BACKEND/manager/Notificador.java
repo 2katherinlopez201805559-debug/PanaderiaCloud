@@ -40,6 +40,15 @@ public final class Notificador extends FirestoreBase {
     private Notificador() {
     }
 
+    private static final Map<String, String> TIPOS_RUTA = new LinkedHashMap<String, String>();
+    static {
+        TIPOS_RUTA.put("VEHICULO", "Falla del vehículo");
+        TIPOS_RUTA.put("ACCIDENTE", "Accidente");
+        TIPOS_RUTA.put("PRODUCTO", "Problema con el pan");
+        TIPOS_RUTA.put("SUCURSAL_CERRADA", "Sucursal cerrada");
+        TIPOS_RUTA.put("OTRO", "Otro");
+    }
+
     /* =====================================================================
        LISTA DE AVISOS (la usa la campanita y el mensaje)
        Cada aviso: {CLAVE, NIVEL (ALTO|MEDIO), ICONO, TITULO, DETALLE, ENLACE}
@@ -47,6 +56,14 @@ public final class Notificador extends FirestoreBase {
     public static List<Map<String, Object>> Avisos() throws Exception {
         ReporteManager r = new ReporteManager();
         List<Map<String, Object>> avisos = new ArrayList<Map<String, Object>>();
+
+        // Problemas reportados por las unidades en ruta (lo más urgente: van primero)
+        for (Map<String, Object> i : new RutaManager().ObtenerIncidentes("ABIERTO", null)) {
+            avisos.add(aviso("R" + i.get("ID_INCIDENTE"), "ALTO", "🚚",
+                    "Problema en ruta: pedido #" + i.get("ID_PEDIDO") + " (" + i.get("SUCURSAL") + ")",
+                    i.get("UNIDAD") + " · " + TIPOS_RUTA.getOrDefault(String.valueOf(i.get("TIPO")), "Otro") + ": "
+                    + i.get("DESCRIPCION") + " Reasigne el pedido a otra unidad.", "panel.html#ruta"));
+        }
 
         for (Map<String, Object> a : r.ObtenerAlertas()) {
             if ("INSUMO".equals(a.get("TIPO"))) {

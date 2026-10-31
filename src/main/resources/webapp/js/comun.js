@@ -41,6 +41,8 @@ const Sesion = {
     },
     /** Página de inicio según el rol. */
     inicio() {
+        const s = this.obtener();
+        if (s && s.ROL === "VENDEDOR") return "ruta.html";
         return this.esGerente() ? "panel.html#pedidos" : "pedidos.html#nuevo";
     }
 };
@@ -54,6 +56,13 @@ const MENU = [
             { texto: "Nuevo pedido", href: "pedidos.html#nuevo", roles: ["GERENTE", "SUCURSAL"] },
             { texto: "Mis pedidos", href: "pedidos.html#historial", roles: ["SUCURSAL"] },
             { texto: "Pedidos de sucursales", href: "panel.html#pedidos", roles: ["GERENTE"] }
+        ]
+    },
+    {
+        grupo: "Ruta", icono: "🚚", roles: ["GERENTE", "VENDEDOR"], items: [
+            { texto: "Mis entregas", href: "ruta.html#entregas", roles: ["VENDEDOR"] },
+            { texto: "Mis reportes", href: "ruta.html#reportes", roles: ["VENDEDOR"] },
+            { texto: "Unidades en ruta", href: "panel.html#ruta", roles: ["GERENTE"] }
         ]
     },
     {
@@ -129,7 +138,7 @@ function montarSistema(rolesPermitidos) {
             </details>`;
     }).join("");
 
-    const quien = s.ROL === "GERENTE" ? "Gerente" : "Sucursal " + (s.SUCURSAL || "");
+    const quien = s.ROL === "GERENTE" ? "Gerente" : s.ROL === "VENDEDOR" ? "Unidad de reparto" : "Sucursal " + (s.SUCURSAL || "");
     app.innerHTML = `
         <aside class="lateral" id="lateral">
             <a class="lateral-marca" href="index.html" title="Ir al sitio público">
@@ -358,6 +367,16 @@ const Api = {
     estadoAvisos: () => api("Reportes/EstadoAvisos"),
     avisos: () => api("Reportes/Avisos"),
     conectarTelegram: () => api("Reportes/ConectarTelegram", { method: "POST" }),
+    // Vendedores en ruta (unidades de reparto)
+    misPedidosRuta: () => api("Ruta/MisPedidos"),
+    misReportesRuta: () => api("Ruta/MisReportes"),
+    entregarRuta: (id) => api(`Ruta/Entrega/${id}`, { method: "POST" }),
+    reportarProblema: (id, tipo, descripcion) => api(`Ruta/Reporte/${id}`, { method: "POST", body: { TIPO: tipo, DESCRIPCION: descripcion } }),
+    unidades: () => api("Ruta/Unidades"),
+    pedidosEnRuta: () => api("Ruta/PedidosEnRuta"),
+    incidentes: (estado) => api("Ruta/Incidentes" + (estado ? "?estado=" + encodeURIComponent(estado) : "")),
+    asignarUnidad: (idPedido, idUnidad) => api(`Ruta/Asignar/${idPedido}`, { method: "POST", body: { ID_UNIDAD: idUnidad } }),
+    resolverIncidente: (id, idUnidad, nota) => api(`Ruta/Incidentes/${id}/Resolver`, { method: "POST", body: { ID_UNIDAD: idUnidad, NOTA: nota } }),
     enviarAviso: () => api("Reportes/EnviarAviso", { method: "POST" }),
     // Sucursales nuevas
     crearSucursal: (s) => api("Sucursales/CrearSucursal", { method: "POST", body: s }),

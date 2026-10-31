@@ -1,6 +1,7 @@
 package BACKEND.manager;
 
 import com.google.cloud.firestore.DocumentReference;
+import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.WriteBatch;
 import java.nio.charset.StandardCharsets;
@@ -128,6 +129,57 @@ public final class DatosIniciales {
         lote.set(marca, m);
 
         lote.commit().get();
+    }
+
+    /**
+     * Unidades de reparto (vendedores en ruta). Se agregaron después de la carga inicial,
+     * por eso se crean aparte la primera vez que haga falta (marca: sistema/unidades).
+     * Usuarios unidad1, unidad2, unidad3 · rol VENDEDOR · contraseña Panaderia2026.
+     */
+    public static synchronized void cargarUnidadesSiHaceFalta(final Firestore db) throws Exception {
+        final DocumentReference marca = db.collection("sistema").document("unidades");
+        if (marca.get().get().exists()) {
+            return;
+        }
+        final String[][] unidades = {{"unidad1", "Unidad de reparto 1"}, {"unidad2", "Unidad de reparto 2"},
+            {"unidad3", "Unidad de reparto 3"}};
+        db.runTransaction(tx -> {
+            if (tx.get(marca).get().exists()) {
+                return null;
+            }
+            DocumentReference contador = db.collection("contadores").document("usuarios");
+            DocumentSnapshot c = tx.get(contador).get();
+            long ultimo = c.exists() && c.get("valor") != null ? ((Number) c.get("valor")).longValue() : 0L;
+            List<DocumentReference> refs = new ArrayList<DocumentReference>();
+            List<Boolean> existe = new ArrayList<Boolean>();
+            for (String[] u : unidades) {
+                DocumentReference r = db.collection("usuarios").document(u[0]);
+                refs.add(r);
+                existe.add(tx.get(r).get().exists());
+            }
+            // ESCRITURAS
+            for (int i = 0; i < unidades.length; i++) {
+                if (existe.get(i)) {
+                    continue;
+                }
+                ultimo++;
+                Map<String, Object> m = new LinkedHashMap<String, Object>();
+                m.put("ID_USUARIO", ultimo);
+                m.put("USUARIO", unidades[i][0]);
+                m.put("CLAVE_HASH", hash(unidades[i][0], CLAVE_INICIAL));
+                m.put("NOMBRE", unidades[i][1]);
+                m.put("ROL", "VENDEDOR");
+                m.put("ID_SUCURSAL", null);
+                m.put("ESTADO", "ACTIVO");
+                m.put("ULTIMO_ACCESO", null);
+                tx.set(refs.get(i), m);
+            }
+            tx.set(contador, valor(ultimo));
+            Map<String, Object> hecho = new HashMap<String, Object>();
+            hecho.put("cargado", FirestoreBase.ahora());
+            tx.set(marca, hecho);
+            return null;
+        }).get();
     }
 
     private static Map<String, Object> valor(long v) {

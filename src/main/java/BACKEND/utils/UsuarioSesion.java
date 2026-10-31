@@ -9,6 +9,7 @@ public class UsuarioSesion implements Principal {
 
     public static final String GERENTE = "GERENTE";
     public static final String SUCURSAL = "SUCURSAL";
+    public static final String VENDEDOR = "VENDEDOR";   // unidad de reparto (vendedor en ruta)
 
     private final int idUsuario;
     private final String usuario;
@@ -48,5 +49,9 @@ public class UsuarioSesion implements Principal {
 
     public boolean esGerente() {
         return GERENTE.equals(rol);
+    }
+
+    public boolean esVendedor() {
+        return VENDEDOR.equals(rol);
     }
 }

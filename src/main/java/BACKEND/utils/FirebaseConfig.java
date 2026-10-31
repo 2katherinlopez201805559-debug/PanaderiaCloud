@@ -37,6 +37,7 @@ public final class FirebaseConfig {
             }
             Firestore conexion = FirestoreClient.getFirestore();
             DatosIniciales.cargarSiHaceFalta(conexion);
+            DatosIniciales.cargarUnidadesSiHaceFalta(conexion);   // vendedores en ruta
             db = conexion;
         }
         return db;

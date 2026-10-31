@@ -1,6 +1,7 @@
 package BACKEND.controller;
 
 import BACKEND.manager.PedidoManager;
+import BACKEND.manager.RutaManager;
 import BACKEND.model.Pedido;
 import BACKEND.model.PedidoDetalle;
 import BACKEND.utils.Acceso;
@@ -24,7 +25,7 @@ import javax.ws.rs.core.SecurityContext;
  * POST /webapi/Pedidos/RegistrarPedido                                  (sucursal: a su nombre)
  *      { "ID_SUCURSAL": 1, "FECHA_ENTREGA": "2026-10-02",
  *        "DETALLE": [ {"ID_PRODUCTO": 3, "CANTIDAD": 20}, {"ID_PRODUCTO": 2, "CANTIDAD": 10} ] }
- * POST /webapi/Pedidos/{id}/Despachar      (solo gerente)
+ * POST /webapi/Pedidos/{id}/Despachar?idUnidad=2   (solo gerente; idUnidad opcional = unidad de reparto)
  * POST /webapi/Pedidos/{id}/Entregar       (gerente o la sucursal dueña: confirma que recibió)
  * POST /webapi/Pedidos/{id}/Cancelar       (gerente o la sucursal dueña)
  */
@@ -82,10 +83,15 @@ public class PedidoController {
 
     @POST
     @Path("/{id}/Despachar")
-    public Response Despachar(@Context SecurityContext sc, @PathParam("id") int id) {
+    public Response Despachar(@Context SecurityContext sc, @PathParam("id") int id,
+                              @QueryParam("idUnidad") String idUnidad) {
         try {
             Acceso.requerirGerente(sc);
             manager.Despachar(id);
+            if (idUnidad != null && !idUnidad.trim().isEmpty()) {          // unidad de reparto que lo lleva
+                new RutaManager().AsignarUnidad(id, Integer.parseInt(idUnidad.trim()));
+                return Respuesta.ok(id, "Pedido #" + id + " despachado y asignado a la unidad.");
+            }
             return Respuesta.ok(id, "Pedido #" + id + " despachado.");
         } catch (Exception e) {
             return Respuesta.error(e);
